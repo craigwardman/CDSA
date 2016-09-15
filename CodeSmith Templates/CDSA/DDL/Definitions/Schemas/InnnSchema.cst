@@ -1,0 +1,37 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../../CSLib.vb" %>
+<%@ Property Name="Table" Type="SchemaExplorer.TableSchema" Category="Context" Description="" %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+namespace <%=RootNs%>.DDL
+{
+	<%
+	dim formattedTableName as string=CSLib.GetFormattedName(Table.Name)
+	
+	if Ns<>"" then
+	%>
+	namespace <%=Ns & "."%>Definitions.Schemas
+	<%
+	else
+	%>
+	namespace Definitions.Schemas
+	<%
+	end if
+	%>
+	{
+		public partial interface I<%=formattedTableName%>Schema : ISchemaBase
+		{
+	
+			<%
+			for i as integer = 0 to Table.NonPrimaryKeyColumns.Count-1
+			%>
+			string @<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%> { get; }
+			<%
+			next i
+			%>
+			
+		}
+	
+	}
+}

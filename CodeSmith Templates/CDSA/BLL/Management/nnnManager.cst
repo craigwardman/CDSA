@@ -1,0 +1,46 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+<%@ Property Name="Table" Type="SchemaExplorer.TableSchema" Category="Context" Description="" %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+using System.Collections.Generic;
+using System.Linq;
+
+namespace <%=RootNs%>.BLL
+{
+	<%
+	dim formattedTableName as string=CSLib.GetFormattedName(Table.Name)
+	
+	if Ns<>"" then
+	%>
+	namespace <%=Ns & "."%>Management
+	<%
+	else
+	%>
+	namespace Management
+	<%
+	end if
+	%>
+	{
+		public partial class <%=formattedTableName%>Manager : BaseClasses.<%=formattedTableName%>ManagerBase
+		{
+			#region "Singleton"
+            private static <%=formattedTableName%>Manager _instance = new <%=formattedTableName%>Manager();
+
+            public static <%=formattedTableName%>Manager GetInstance()
+            {
+                return _instance;
+            }
+
+            protected <%=formattedTableName%>Manager()
+            {
+            }
+
+            #endregion
+		
+			//stub
+		}
+	
+	}
+}

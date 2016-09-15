@@ -1,0 +1,82 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+<%@ Property Name="Table" Type="SchemaExplorer.TableSchema" Category="Context" Description="" %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+<%@ Property Name="DTOsForWCF" Type="System.Boolean" Default="False" Optional="False" Category="Options" Description="Decorate the DTOs for use in WCF services." %>
+<%@ Property Name="RIAServices" Type="System.Boolean" Default="False" Optional="False" Category="Options" Description="Decorate the DTOs for use in RIA for Silverlight." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+using System;
+<% If DTOsForWCF then %>
+using System.Runtime.Serialization;
+<%end if%>
+<% If RIAServices then %>
+using System.ComponentModel.DataAnnotations;
+<%end if%>
+
+namespace <%=RootNs%>.DDL
+{
+	<%
+	dim formattedTableName as string=CSLib.GetFormattedName(Table.Name)
+	
+	if Ns<>"" then
+	%>
+	namespace <%=Ns & "."%>DTOs
+	<%
+	else
+	%>
+	namespace DTOs
+	<%
+	end if
+	%>
+	{
+		[Serializable()]
+		<% If DTOsForWCF then %>
+		[DataContract()]
+		<%end if%>
+		public sealed partial class @<%=formattedTableName%> : Definitions.IRecordData
+		{
+			<% 
+			dim pk_dataType as string="int"
+			If Table.HasPrimaryKey then
+				pk_dataType=CSLib.GetTypeName(Table.PrimaryKey.MemberColumns.Item(0).SystemType,Table.PrimaryKey.MemberColumns.Item(0).AllowDBNull)
+			end if
+			%>
+		
+			private <%=pk_dataType%> _uniqueId;	
+			
+			#region IData Members
+			<% If DTOsForWCF then %>
+			[DataMember()]
+			<%end if%>
+			<% If RIAServices then %>
+			[Key()]
+			<%end if%>
+			public <%=pk_dataType%> UniqueId
+			{
+				get { return _uniqueId; }
+				set { _uniqueId = value; }
+			}
+			#endregion
+	
+			<%
+			for i as integer = 0 to Table.NonPrimaryKeyColumns.Count-1
+			%>
+			private <%=CSLib.GetTypeName(Table.NonPrimaryKeyColumns.Item(i).SystemType,Table.NonPrimaryKeyColumns.Item(i).AllowDBNull)%> _<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>;
+			<% If DTOsForWCF then %>
+			[DataMember()]
+			<%end if%>
+			public <%=CSLib.GetTypeName(Table.NonPrimaryKeyColumns.Item(i).SystemType,Table.NonPrimaryKeyColumns.Item(i).AllowDBNull)%> @<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>
+			{
+				get {return _<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>;}
+				set {_<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%> = value;}
+			}
+			
+			<%
+			next i
+			%>
+			
+		}
+	
+	}
+}

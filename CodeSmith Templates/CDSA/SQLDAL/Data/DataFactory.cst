@@ -1,0 +1,105 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Category="Context" Description="" %>
+<%@ Property Name="IgnorePrefix" Type="System.String" Default="Cms" Optional="True" Category="Input" Description="Ignore tables with the given prefix" %>
+<%@ Property Name="IncludePrefix" Type="System.String" Default="" Optional="True" Category="Input" Description="Only process tables with the given prefix" %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+using System;
+using System.Collections.Generic;
+using System.Data;
+
+namespace <%=RootNs%>.SQLDAL
+{
+	<%
+	if Ns<>"" then
+	%>
+	namespace <%=Ns & "."%>Data
+	<%
+	else
+	%>
+	namespace Data
+	<%
+	end if
+	%>
+	{
+		internal partial class DataFactory
+		{
+			static partial void CreateDataInstanceEx(DDL.Definitions.Schemas.ISchemaBase dataSchema, DataRow rowData, ref DDL.Definitions.IRecordData returnValue);
+			public static DDL.Definitions.IRecordData CreateDataInstance(DDL.Definitions.Schemas.ISchemaBase dataSchema, DataRow rowData)
+			{
+				//switch the type
+				<%
+					for i as integer=0 to SourceDatabase.Tables.Count-1
+						if IgnorePrefix<>"" then
+							if SourceDatabase.Tables.Item(i).Name.StartsWith(IgnorePrefix) then continue for
+						end if
+						if IncludePrefix<>"" then
+							if not SourceDatabase.Tables.Item(i).Name.StartsWith(IncludePrefix) then continue for
+						end if
+					
+				%>
+				if (dataSchema is DDL.Definitions.Schemas.I<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>Schema)
+				{
+					return new Sql<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>(rowData).DataTransferObject;
+				}
+				else 
+				<%
+				
+					next
+				%>
+				{
+					DDL.Definitions.IRecordData data = null;
+                    CreateDataInstanceEx(dataSchema,rowData, ref data);
+                    if (data != null)
+                    {
+                        return data;
+                    }
+                    else
+                    {
+                        throw new NotSupportedException("Unsupported Schema: '" + dataSchema.GetType().ToString());
+                    }
+				}
+			}
+	
+			static partial void GetNameValuePairsEx(DDL.Definitions.IRecordData data, ref List<KeyValuePair<string, object>> returnValue);
+			public static List<KeyValuePair<string, object>> GetNameValuePairs(DDL.Definitions.IRecordData data)
+			{
+			
+				//switch the type
+				<%
+					for i as integer=0 to SourceDatabase.Tables.Count-1
+						if IgnorePrefix<>"" then
+							if SourceDatabase.Tables.Item(i).Name.StartsWith(IgnorePrefix) then continue for
+						end if
+						if IncludePrefix<>"" then
+							if not SourceDatabase.Tables.Item(i).Name.StartsWith(IncludePrefix) then continue for
+						end if
+					
+				%>
+				if (data is DDL.DTOs.<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>)
+				{
+					return new Sql<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>((DDL.DTOs.<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>)data).GetNameValuePairs();
+				}
+				else 
+				<%
+					next
+				%>
+				{
+					List<KeyValuePair<string, object>> paramPairs = null;
+                    GetNameValuePairsEx(data, ref paramPairs);
+                    if (paramPairs != null)
+                    {
+                        return paramPairs;
+                    }
+                    else
+                    {
+                        throw new NotSupportedException("Unsupported Type: '" + data.GetType().ToString());
+                    }
+				}
+			}
+		}
+	
+	}
+}

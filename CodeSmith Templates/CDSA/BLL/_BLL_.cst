@@ -1,0 +1,107 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" src="../../CSLib.vb" Inherits="" Debug="False" %>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Category="Context" Description="" %>
+<%@ Property Name="IgnorePrefix" Type="System.String" Default="Cms" Optional="True" Category="Input" Description="Ignore tables with the given prefix" %>
+<%@ Property Name="IncludePrefix" Type="System.String" Default="" Optional="True" Category="Input" Description="Only process tables with the given prefix" %>
+<%@ Property Name="RootDirectory" Type="System.String" Default="c:\CWCode\_BLL\" Optional="False" Category="Output" Description="Where to output the BLL code and its subfolders." %>
+<%@ Property Name="LogName" Type="System.String" Default="" Optional="False" Category="Options" Description="The name of the log the app will use in event viewer." %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.Engine" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+
+<%
+	'format the root folder
+	if not RootDirectory.EndsWith("\") then RootDirectory &= "\"
+	
+%>
+
+<script runat="template">
+'declare variables
+dim currentTemplate as CodeTemplate
+
+public sub Go()
+		
+	'*** ROOT ***
+	'create the output folder
+	me.Response.Write("Creating BLL Files in (" & RootDirectory & ") ...")
+	CSLib.SafeCreateDirectory(RootDirectory)
+	
+	'create the DataProviders
+	currentTemplate=me.GetCodeTemplateInstance(".\DataProviders.cst",true)
+	currentTemplate.SetProperty("RootNs", RootNs)
+	currentTemplate.SetProperty("Ns", Ns)
+	currentTemplate.RenderToFile(RootDirectory & "DataProviders.cs", true)
+	
+		
+	'create the EntityValidationException
+	currentTemplate=me.GetCodeTemplateInstance(".\EntityValidationException.cst",true)
+	currentTemplate.SetProperty("RootNs", RootNs)
+	currentTemplate.SetProperty("Ns", Ns)
+	currentTemplate.RenderToFile(RootDirectory & "EntityValidationException.cs", true)
+	
+	'create the SchemaCatalog
+	currentTemplate=me.GetCodeTemplateInstance(".\SchemaCatalog.cst",true)
+	currentTemplate.SetProperty("RootNs", RootNs)
+	currentTemplate.SetProperty("Ns", Ns)
+	currentTemplate.RenderToFile(RootDirectory & "SchemaCatalog.cs", true)
+	
+	'*** ENTITY MANAGERS ***
+	'create the output folder
+	CSLib.SafeCreateDirectory(RootDirectory & "Management\")
+	CSLib.SafeCreateDirectory(RootDirectory & "Management\BaseClasses")
+	
+	'create the nnnManagerBase for each Entity
+	currentTemplate=me.GetCodeTemplateInstance(".\Management\BaseClasses\nnnManagerBase.cst",true)
+	currentTemplate.SetProperty("RootNs", RootNs)
+	currentTemplate.SetProperty("Ns", Ns)
+	for i as integer=0 to SourceDatabase.Tables.count -1
+		if IgnorePrefix<>"" then
+			if SourceDatabase.Tables.Item(i).Name.StartsWith(IgnorePrefix) then continue for
+		end if
+		if IncludePrefix<>"" then
+			if not SourceDatabase.Tables.Item(i).Name.StartsWith(IncludePrefix) then continue for
+		end if
+		
+		currentTemplate.SetProperty("Table", SourceDatabase.Tables.Item(i))
+		currentTemplate.RenderToFile(RootDirectory & "Management\BaseClasses\" & CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) & "ManagerBase.cs", true)
+	next i
+	
+	'create the nnnManager for each Entity
+	currentTemplate=me.GetCodeTemplateInstance(".\Management\nnnManager.cst",true)
+	currentTemplate.SetProperty("RootNs", RootNs)
+	currentTemplate.SetProperty("Ns", Ns)
+	for i as integer=0 to SourceDatabase.Tables.count -1
+		if IgnorePrefix<>"" then
+			if SourceDatabase.Tables.Item(i).Name.StartsWith(IgnorePrefix) then continue for
+		end if
+		if IncludePrefix<>"" then
+			if not SourceDatabase.Tables.Item(i).Name.StartsWith(IncludePrefix) then continue for
+		end if
+		
+		currentTemplate.SetProperty("Table", SourceDatabase.Tables.Item(i))
+		currentTemplate.RenderToFile(RootDirectory & "Management\" & CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) & "Manager.cs", true)
+	next i
+	
+	'*** SERVICES ***
+	'create the output folder
+	CSLib.SafeCreateDirectory(RootDirectory & "Services\")
+		
+	'create the Logging
+	currentTemplate=me.GetCodeTemplateInstance(".\Services\Logging.cst",true)
+	currentTemplate.SetProperty("RootNs", RootNs)
+	currentTemplate.SetProperty("Ns", Ns)
+	currentTemplate.SetProperty("LogName", LogName)
+	currentTemplate.RenderToFile(RootDirectory & "Services\Logging.cs", true)
+	
+	currentTemplate=me.GetCodeTemplateInstance(".\Services\Caching.cst",true)
+	currentTemplate.SetProperty("RootNs", RootNs)
+	currentTemplate.SetProperty("Ns", Ns)
+	currentTemplate.RenderToFile(RootDirectory & "Services\Caching.cs", true)
+		
+	me.Response.WriteLine("DONE!")
+end sub
+</script>
+<%me.Go()%>

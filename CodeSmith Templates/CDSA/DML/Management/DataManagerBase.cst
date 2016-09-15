@@ -1,0 +1,79 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+using ClauseWrappers.WhereClauseWrapper;
+using ClauseWrappers.OrderByClauseWrapper;
+using System.Collections.Generic;
+
+namespace <%=RootNs%>.DML
+{
+	<%
+	if Ns<>"" then
+	%>
+	namespace <%=Ns & "."%>Management
+	<%
+	else
+	%>
+	namespace Management
+	<%
+	end if
+	%>
+	{
+		/// <summary>
+        /// This is the base class for all data managerment operations
+        /// </summary>
+		public abstract partial class DataManagerBase
+		{
+		
+			/// <summary>
+            /// Gets the schema of the data for the current manager
+            /// </summary>
+			public readonly DDL.Definitions.Schemas.ISchemaBase DataSchema;
+			
+			/// <summary>
+            /// Instanciate a manager for the given schema
+            /// </summary>
+            /// <param name="schema">The schema of the data you will be managing</param>
+			public DataManagerBase(DDL.Definitions.Schemas.ISchemaBase schema)
+			{
+				this.DataSchema = schema;
+			}
+	
+			protected WhereClause GetIdClause(int id)
+			{
+				//use the ID column of the current schema
+				return new WhereClause(this.DataSchema.UniqueId, Operator.Equals, id);
+			}
+	
+			//define the abstract functionality
+	
+			//get
+			public abstract DDL.Definitions.IRecordData GetDataById(int id);
+			public abstract List<DDL.Definitions.IRecordData> GetData();
+			public abstract List<DDL.Definitions.IRecordData> GetData(WhereClause where);
+			public abstract List<DDL.Definitions.IRecordData> GetData(WhereClause where, OrderByClause orderBy);
+			public abstract List<DDL.Definitions.IRecordData> GetData(WhereClause where, OrderByClause orderBy, int pageNumber, int pageSize);
+			public abstract List<DDL.Definitions.IRecordData> GetData(WhereClause where, OrderByClause orderBy, int pageNumber, int pageSize, out int totalRecords);
+	
+			//ID only
+			public abstract List<int> GetDataIDs();
+			public abstract List<int> GetDataIDs(WhereClause where);
+			public abstract List<int> GetDataIDs(WhereClause where, OrderByClause orderBy);
+			public abstract List<int> GetDataIDs(WhereClause where, OrderByClause orderBy, int pageNumber, int pageSize);
+			public abstract List<int> GetDataIDs(WhereClause where, OrderByClause orderBy, int pageNumber, int pageSize, out int totalRecords);
+	
+	
+			//delete
+			public abstract void DeleteData(WhereClause where);
+	
+			//create / update
+			 /// <summary>
+            /// Persist the data to the data store
+            /// </summary>
+            /// <param name="data">The data to be persisted</param>
+            /// <returns>The unique ID of the record affected</returns>
+			public abstract int SaveData(DDL.Definitions.IRecordData data);
+	
+		}
+	}
+}

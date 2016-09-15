@@ -1,0 +1,60 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+using System;
+using System.Collections.Generic;
+
+namespace <%=RootNs%>.BLL
+{
+	<%
+	if Ns<>"" then
+	%>
+	namespace <%=Ns%>
+	{
+	<%
+	end if
+	%>
+		public class EntityValidationException : Exception
+		{
+			public readonly List<EntityValidationFault> Faults;
+	
+			public EntityValidationException(List<EntityValidationFault> faults) : 
+				base("Entity validation failed. See the faults list for more details")
+			{
+				this.Faults = faults;
+			}
+		}
+	
+		public class EntityValidationFault
+		{
+			private string _faultDataName;
+			public string FaultDataName {
+                get
+                {
+                    return _faultDataName;
+                }
+            }
+            private string _faultDescription;
+            public string FaultDescription
+            {
+                get
+                {
+                    return _faultDescription;
+                }
+            }
+	
+			public EntityValidationFault(string faultDataName, string faultDescription)
+			{
+				this._faultDataName = faultDataName;
+                this._faultDescription = faultDescription;
+			}
+		}
+	
+	<%
+	if Ns<>"" then
+	%>
+	}
+	<%
+	end if
+	%>
+}

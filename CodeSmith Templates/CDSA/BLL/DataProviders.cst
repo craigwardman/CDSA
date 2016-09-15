@@ -1,0 +1,72 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+using System;
+
+namespace <%=RootNs%>.BLL
+{
+	<%
+	if Ns<>"" then
+	%>
+	namespace <%=Ns%>
+	{
+	<%
+	end if
+	%>
+		public partial class DataProviders
+		{
+			//holds the app wide data provider that the BLL is currently set to us
+			private static DML.Provider.IDataProvider _current;
+	
+			//expose it internally
+			internal static DML.Provider.IDataProvider Current
+			{
+				get
+				{
+					if (_current != null)
+					{
+						return _current;
+					}
+					else
+					{
+						throw new Exception("Not connected to a datasource!");
+					}
+				}
+				private set {}
+			}
+	
+			public static bool HasValidDatasource()
+			{
+				return (_current != null && _current.IsValid());
+			}
+	
+			public static void SetDatasource(ProviderList.Provider dataprovider)
+			{
+				_current = dataprovider.Instance;
+				Services.Caching.InvalidateCache();
+			}
+	
+			public partial class ProviderList
+			{
+				public struct Provider
+				{
+					internal DML.Provider.IDataProvider Instance;
+				}
+	
+				//import the DALs
+				public static Provider SqlDataProvider(string connectionString)
+				{
+					return new Provider() { Instance = new SQLDAL.Provider.SqlDataProvider(connectionString) };
+				}
+			}
+		
+		}
+	
+	<%
+	if Ns<>"" then
+	%>
+	}
+	<%
+	end if
+	%>
+}

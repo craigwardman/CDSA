@@ -1,0 +1,117 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" src="../CSLib.vb" Inherits="" Debug="False" %>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Category="Context" Description="" %>
+<%@ Property Name="IgnorePrefix" Type="System.String" Default="Cms" Optional="True" Category="Input" Description="Ignore tables with the given prefix" %>
+<%@ Property Name="IncludePrefix" Type="System.String" Default="" Optional="True" Category="Input" Description="Only process tables with the given prefix" %>
+<%@ Property Name="RootDirectory" Type="System.String" Default="c:\CWCode\" Optional="False" Category="Output" Description="Where to output the code and its subfolders." %>
+<%@ Property Name="LogName" Type="System.String" Default="" Optional="False" Category="Options" Description="The name of the log file to use in the BLL." %>
+<%@ Property Name="DTOsForWCF" Type="System.Boolean" Default="False" Optional="False" Category="Options" Description="Decorate the DTOs for use in WCF services." %>
+<%@ Property Name="RIAServices" Type="System.Boolean" Default="False" Optional="False" Category="Options" Description="Decorate DTOs and when making interface, generate RIA service classes for ASP.NET/Silverlight." %>
+<%@ Property Name="MakeDDL" Type="System.Boolean" Default="True" Optional="False" Category="Output" Description="" %>
+<%@ Property Name="MakeDML" Type="System.Boolean" Default="True" Optional="False" Category="Output" Description="" %>
+<%@ Property Name="MakeSQLDAL" Type="System.Boolean" Default="True" Optional="False" Category="Output" Description="" %>
+<%@ Property Name="MakeBLL" Type="System.Boolean" Default="True" Optional="False" Category="Output" Description="" %>
+<%@ Property Name="MakeInterface" Type="System.Boolean" Default="True" Optional="False" Category="Output" Description="" %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="ExtraNs" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace to use in all files." %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.Engine" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+
+<%
+	'format the root folder
+	if not RootDirectory.EndsWith("\") then RootDirectory &= "\"
+	
+%>
+
+<script runat="template">
+'declare variables
+dim currentTemplate as CodeTemplate
+
+public sub Go()
+	
+	me.Progress.MinimumValue=0
+	me.Progress.MaximumValue=5
+	me.Progress.Value=0
+	me.Progress.Step=1
+		
+	'*** ROOT ***
+	'create the output folder
+	me.Response.Write("Creating Root Folder (" & RootDirectory & ") ...")
+	CSLib.SafeCreateDirectory(RootDirectory)
+	me.Response.WriteLine("DONE!")
+	
+	me.Progress.PerformStep
+	
+	'output each layer as selected
+	if MakeDDL then
+		currentTemplate=me.GetCodeTemplateInstance(".\DDL\_DDL_.cst",true)
+		currentTemplate.SetProperty("SourceDatabase", SourceDatabase)
+		currentTemplate.SetProperty("RootDirectory",RootDirectory & "_DDL\")
+		currentTemplate.SetProperty("IgnorePrefix", IgnorePrefix)
+		currentTemplate.SetProperty("IncludePrefix", IncludePrefix)
+		currentTemplate.SetProperty("RootNs", RootNs)
+		currentTemplate.SetProperty("Ns", ExtraNs)
+		currentTemplate.SetProperty("DTOsForWCF", DTOsForWCF)
+		currentTemplate.SetProperty("RIAServices", RIAServices)
+		currentTemplate.Render(Response.TargetWriters.Item(0))
+	end if
+	
+	me.Progress.PerformStep
+	
+	if MakeDML then
+		currentTemplate=me.GetCodeTemplateInstance(".\DML\_DML_.cst",true)
+		currentTemplate.SetProperty("RootDirectory",RootDirectory & "_DML\")
+		currentTemplate.SetProperty("RootNs", RootNs)
+		currentTemplate.SetProperty("Ns", ExtraNs)
+		currentTemplate.Render(Response.TargetWriters.Item(0))
+	end if
+	
+	me.Progress.PerformStep
+	
+	if MakeSQLDAL then
+		currentTemplate=me.GetCodeTemplateInstance(".\SQLDAL\_SQLDAL_.cst",true)
+		currentTemplate.SetProperty("SourceDatabase", SourceDatabase)
+		currentTemplate.SetProperty("RootDirectory",RootDirectory & "_SQLDAL\")
+		currentTemplate.SetProperty("IgnorePrefix", IgnorePrefix)
+		currentTemplate.SetProperty("IncludePrefix", IncludePrefix)
+		currentTemplate.SetProperty("RootNs", RootNs)
+		currentTemplate.SetProperty("Ns", ExtraNs)
+		currentTemplate.Render(Response.TargetWriters.Item(0))
+	end if
+	
+	me.Progress.PerformStep
+	
+	if MakeBLL then
+		currentTemplate=me.GetCodeTemplateInstance(".\BLL\_BLL_.cst",true)
+		currentTemplate.SetProperty("SourceDatabase", SourceDatabase)
+		currentTemplate.SetProperty("RootDirectory",RootDirectory & "_BLL\")
+		currentTemplate.SetProperty("IgnorePrefix", IgnorePrefix)
+		currentTemplate.SetProperty("IncludePrefix", IncludePrefix)
+		currentTemplate.SetProperty("LogName", LogName)
+		currentTemplate.SetProperty("RootNs", RootNs)
+		currentTemplate.SetProperty("Ns", ExtraNs)
+		currentTemplate.Render(Response.TargetWriters.Item(0))
+	end if
+	
+	me.Progress.PerformStep
+	
+	if MakeInterface then
+		currentTemplate=me.GetCodeTemplateInstance(".\Interface\_Interface_.cst",true)
+		currentTemplate.SetProperty("SourceDatabase", SourceDatabase)
+		currentTemplate.SetProperty("RootDirectory",RootDirectory & "_Interface\")
+		currentTemplate.SetProperty("IgnorePrefix", IgnorePrefix)
+		currentTemplate.SetProperty("IncludePrefix", IncludePrefix)
+		currentTemplate.SetProperty("RootNs", RootNs)
+		currentTemplate.SetProperty("Ns", ExtraNs)
+		currentTemplate.SetProperty("RIAServices", RIAServices)
+		currentTemplate.Render(Response.TargetWriters.Item(0))
+	end if
+	
+	me.Progress.PerformStep
+	
+	me.Response.WriteLine("ALL DONE!")
+end sub
+</script>
+<%me.Go()%>

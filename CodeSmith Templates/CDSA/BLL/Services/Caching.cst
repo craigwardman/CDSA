@@ -1,0 +1,183 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+using System;
+
+namespace <%=RootNs%>.BLL
+{
+	<%
+	if Ns<>"" then
+	%>
+	namespace <%=Ns & "."%>Services
+	<%
+	else
+	%>
+	namespace Services
+	<%
+	end if
+	%>
+	{
+		internal static class Caching
+        {
+			public static bool Enabled = true;
+			
+            //how many objects to keep in the cache
+            private const int CACHE_SIZE = 1000;
+
+            //memory backed cache (shared amongst all items)
+            private static System.Collections.Hashtable _cache = new System.Collections.Hashtable(CACHE_SIZE);
+            
+            //expose a function to completely wipe the cache
+            public static void InvalidateCache()
+            {
+                lock (_cache.SyncRoot)
+                {
+                    _cache.Clear();
+                }
+            }
+
+            //get something from the cache
+            private static DDL.Definitions.IRecordData _GetFromCache(string key)
+            {
+                CacheItem cacheResult = null;
+
+                lock (_cache.SyncRoot)
+                {
+                    //if its in the cache, we can return it, but also keep it up to date
+                    cacheResult = (CacheItem)_cache[key];
+
+                    if (cacheResult != null)
+                    {
+                        cacheResult.Touch();
+                        return cacheResult.Data;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+
+                
+            }
+
+            //adding to the cache adds or updates the timestamp
+            private static void _AddToCache(string key, DDL.Definitions.IRecordData data)
+            {
+                if (data != null)
+                {
+                    lock (_cache.SyncRoot)
+                    {
+                        if (_cache.ContainsKey(key))
+                        {
+                            //already exists, update the timestamp and data
+                            ((CacheItem)_cache[key]).Touch(data);
+                        }
+                        else
+                        {
+                            //we are adding a new item, if this will overflow the cache, then remove the oldest item
+                            if (_cache.Count >= CACHE_SIZE)
+                            {
+                                //find the oldest member
+                                CacheItem oldestItem = null;
+                                foreach (CacheItem itm in _cache.Values)
+                                {
+                                    if (oldestItem == null || itm.Timestamp < oldestItem.Timestamp)
+                                    {
+                                        oldestItem = itm;
+                                    }
+                                }
+
+                                _cache.Remove(oldestItem.Key);
+                            }
+
+                            _cache.Add(key, new CacheItem(key, data));
+                        }
+                    }
+                }
+            }
+
+            private static void _RemoveFromCache(string key)
+            {
+                lock (_cache.SyncRoot)
+                {
+                    //remove any entries for this item
+                    _cache.Remove(key);
+                }
+            }        
+
+            //public accessors
+            public static DDL.Definitions.IRecordData GetFromCache(string dataContainerName, string DataUniqueId)
+            {
+                if (Enabled)
+                {
+                    return _GetFromCache(dataContainerName + "-" + DataUniqueId);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            public static void AddToCache(string dataContainerName, DDL.Definitions.IRecordData data)
+            {
+                if (Enabled)
+                {
+                    if (data != null)
+                        _AddToCache(dataContainerName + "-" + data.UniqueId, data);
+                }
+            }
+
+            public static void RemoveFromCache(string dataContainerName, string DataUniqueId)
+            {
+                if (Enabled)
+                {
+                    _RemoveFromCache(dataContainerName + "-" + DataUniqueId);
+                }
+            }
+
+
+
+            #region "CacheItemClass"
+            class CacheItem
+            {
+                public DDL.Definitions.IRecordData Data
+                {
+                    get;
+                    private set;
+                }
+
+                public long Timestamp
+                {
+                    get;
+                    private set;
+                }
+
+                public string Key
+                {
+                    get;
+                    private set;
+                }
+
+                public void Touch(DDL.Definitions.IRecordData latestData)
+                {
+                    Touch();
+                    this.Data = latestData;
+                }
+
+                public void Touch()
+                {
+                    this.Timestamp = System.DateTime.Now.Ticks;
+                }
+
+                public CacheItem(string Key, DDL.Definitions.IRecordData Data)
+                {
+                    this.Key = Key;
+                    this.Data = Data;
+                    Touch();
+                }
+            }
+            #endregion
+            
+        }
+	}
+}

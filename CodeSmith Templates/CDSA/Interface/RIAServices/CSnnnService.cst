@@ -1,0 +1,56 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+<%@ Property Name="Table" Type="SchemaExplorer.TableSchema" Category="Context" Description="" %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+
+<%
+dim formattedTableName as string=CSLib.GetFormattedName(Table.Name)
+
+
+dim pk_dataType as string="int"
+If Table.HasPrimaryKey then
+	pk_dataType=CSLib.GetTypeName(Table.PrimaryKey.MemberColumns.Item(0).SystemType,Table.PrimaryKey.MemberColumns.Item(0).AllowDBNull)
+end if
+			
+%>
+
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ServiceModel.DomainServices.Hosting;
+using System.ServiceModel.DomainServices.Server;
+
+namespace RIAServices
+{
+    [EnableClientAccess]
+    public partial class AvlService : DomainService
+    {
+
+        public DDL.DTOs.<%=formattedTableName%> Get<%=formattedTableName%>ById(<%=pk_dataType%> id)
+	    {
+            return BLL.Management.<%=formattedTableName%>Manager.GetInstance().GetRecord(id);
+        }
+
+        public IEnumerable<DDL.DTOs.<%=formattedTableName%>> Get<%=formattedTableName%>s()
+	    {
+            return BLL.Management.<%=formattedTableName%>Manager.GetInstance().GetRecords();
+        }
+
+        public void Update<%=formattedTableName%>(DDL.DTOs.<%=formattedTableName%> entity)
+	    {
+            BLL.Management.<%=formattedTableName%>Manager.GetInstance().SaveRecord(entity);
+        }
+
+        public void Insert<%=formattedTableName%>(DDL.DTOs.<%=formattedTableName%> entity)
+	    {
+            BLL.Management.<%=formattedTableName%>Manager.GetInstance().SaveRecord(entity);
+        }
+
+        public void Delete<%=formattedTableName%>(DDL.DTOs.<%=formattedTableName%> entity)
+	    {
+            BLL.Management.<%=formattedTableName%>Manager.GetInstance().DeleteRecord(entity.UniqueId);
+        }
+    }
+}

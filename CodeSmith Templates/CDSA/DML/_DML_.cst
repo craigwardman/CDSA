@@ -1,0 +1,51 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" src="../../CSLib.vb" Inherits="" Debug="False" %>
+<%@ Property Name="RootDirectory" Type="System.String" Default="c:\CWCode\_DML"  Optional="False" Category="Output" Description="Where to output the DML code and its subfolders." %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.Engine" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+
+<%
+	'format the root folder
+	if not RootDirectory.EndsWith("\") then RootDirectory &= "\"
+	
+%>
+
+<script runat="template">
+'declare variables
+dim currentTemplate as CodeTemplate
+
+public sub Go()
+	
+	'*** ROOT ***
+	'create the output folder
+	me.Response.Write("Creating DML Files in (" & RootDirectory & ") ...")
+	CSLib.SafeCreateDirectory(RootDirectory)
+
+	'*** PROVIDER ***
+	'create the IDataProvider
+	CSLib.SafeCreateDirectory(RootDirectory & "Provider\")
+	currentTemplate=me.GetCodeTemplateInstance(".\Provider\IDataProvider.cst",true)
+	currentTemplate.SetProperty("RootNs", RootNs)
+	currentTemplate.SetProperty("Ns", Ns)
+	currentTemplate.RenderToFile(RootDirectory & "Provider\IDataProvider.cs", true)
+		
+	
+	'*** MANAGEMENT ***
+	'create the output folder
+	CSLib.SafeCreateDirectory(RootDirectory & "Management\")
+	
+	'create the DataManagerBase
+	currentTemplate=me.GetCodeTemplateInstance(".\Management\DataManagerBase.cst",true)
+	currentTemplate.SetProperty("RootNs", RootNs)
+	currentTemplate.SetProperty("Ns", Ns)
+	currentTemplate.RenderToFile(RootDirectory & "Management\DataManagerBase.cs", true)
+	
+	
+	me.Response.WriteLine("DONE!")
+end sub
+</script>
+<%me.Go()%>

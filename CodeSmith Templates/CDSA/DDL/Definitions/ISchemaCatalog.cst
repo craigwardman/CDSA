@@ -1,0 +1,44 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Category="Context" Description="" %>
+<%@ Property Name="IgnorePrefix" Type="System.String" Default="Cms" Optional="True" Category="Input" Description="Ignore tables with the given prefix" %>
+<%@ Property Name="IncludePrefix" Type="System.String" Default="" Optional="True" Category="Input" Description="Only process tables with the given prefix" %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+namespace <%=RootNs%>.DDL
+{
+	<%
+	if Ns<>"" then
+	%>
+	namespace <%=Ns & "."%>Definitions
+	<%
+	else
+	%>
+	namespace Definitions
+	<%
+	end if
+	%>
+	{
+		public partial interface ISchemaCatalog
+		{
+		<%
+			for i as integer=0 to SourceDatabase.Tables.Count-1
+				if IgnorePrefix<>"" then
+					if SourceDatabase.Tables.Item(i).Name.StartsWith(IgnorePrefix) then continue for
+				end if
+				if IncludePrefix<>"" then
+					if not SourceDatabase.Tables.Item(i).Name.StartsWith(IncludePrefix) then continue for
+				end if
+			
+		%>
+			Schemas.I<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>Schema <%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>Schema { get ; }
+		<%
+		
+			next
+		%>
+		
+		}
+	
+	}
+}

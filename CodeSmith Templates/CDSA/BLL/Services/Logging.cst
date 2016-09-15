@@ -1,0 +1,36 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" %>
+<%@ Property Name="LogName" Type="System.String" Default="" Optional="False" Category="BLL" Description="The name of the log the app will use in event viewer." %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+using System;
+
+namespace <%=RootNs%>.BLL
+{
+	<%
+	if Ns<>"" then
+	%>
+	namespace <%=Ns & "."%>Services
+	<%
+	else
+	%>
+	namespace Services
+	<%
+	end if
+	%>
+	{
+		public static class Logging
+		{
+			private const string LOGNAME = "<%=LogName%>";
+			private static string _LOG_BASE = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).Replace("file:\\", "") + "\\..\\Logs\\";
+	
+			public static void WriteEntry(string source, string message, System.Diagnostics.EventLogEntryType type)
+			{
+                string todaysLog = LOGNAME + DateTime.Now.ToString("-yyyyMMdd");
+                if (!System.IO.Directory.Exists(_LOG_BASE)) System.IO.Directory.CreateDirectory(_LOG_BASE);
+                System.IO.File.AppendAllText(_LOG_BASE + todaysLog + ".log", DateTime.Now.ToString("dd-MM-yy hh:mm:ss") + " - (" + type.ToString() + ") " + message + " - Source: " + source + "\r\n");
+			}
+	
+	
+		}
+	}
+}

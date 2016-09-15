@@ -1,0 +1,132 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+<%@ Property Name="Table" Type="SchemaExplorer.TableSchema" Category="Context" Description="" %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Import Namespace="SchemaExplorer" %>
+
+<%
+dim formattedTableName as string=CSLib.GetFormattedName(Table.Name)
+%>
+Namespace ServerControls
+
+	Public Class <%=formattedTableName%>PagingGridView
+		Inherits ControlExtensions.WebControlExtensions.GridViewExtensions.CustomPagingGridView
+    
+        <System.ComponentModel.Browsable(false)> _
+        Public Property WhereClause as ClauseWrappers.WhereClauseWrapper.WhereClause
+            Get
+                if ViewState("WhereClause") is Nothing then ViewState("WhereClause") = new ClauseWrappers.WhereClauseWrapper.WhereClause()
+                return DirectCast(ViewState("WhereClause"),ClauseWrappers.WhereClauseWrapper.WhereClause)
+            end Get
+            Set(ByVal value as ClauseWrappers.WhereClauseWrapper.WhereClause)
+            
+                ViewState("WhereClause") = value
+            end set
+        End Property
+
+        public sub BindGrid()
+            Dim orderBy as new ClauseWrappers.OrderByClauseWrapper.OrderByClause()
+
+            'work out the orderBy from the current expression
+            if MyBase.SortExpression <> ""
+                if MyBase.SortExpression.Contains(",") then
+                    dim exprs as string() = MyBase.SortExpression.Split(","c)
+
+                    for each expr as string in exprs
+                        dim myOrderByClauseElem as new ClauseWrappers.OrderByClauseWrapper.OrderByClauseElement()
+                        If expr.Contains(" ") And (expr.ToUpper.EndsWith("ASC") Or expr.ToUpper.EndsWith("DESC")) Then
+                            myOrderByClauseElem.FieldName = BLL.SchemaCatalog.GetFieldNameByPropertyName(BLL.SchemaCatalog.CurrentProviderSchemas.<%=formattedTableName%>Schema, expr.Split(" "c)(0))
+							If myOrderByClauseElem.FieldName = "" Then myOrderByClauseElem.FieldName = expr.Split(" "c)(0)
+
+                            Select Case expr.ToUpper().Split(" "c)(1)
+                                Case "ASC"
+                                    myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Ascending
+                                Case "DESC"
+                                    myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Descending
+                            End Select
+                        Else
+                            myOrderByClauseElem.FieldName = BLL.SchemaCatalog.GetFieldNameByPropertyName(BLL.SchemaCatalog.CurrentProviderSchemas.<%=formattedTableName%>Schema, expr)
+							If myOrderByClauseElem.FieldName = "" Then myOrderByClauseElem.FieldName = expr
+							
+                            Select Case MyBase.SortDirection
+
+                                Case System.Web.UI.WebControls.SortDirection.Ascending
+                                    myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Ascending
+
+                                Case System.Web.UI.WebControls.SortDirection.Descending
+                                    myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Descending
+
+                            End Select
+                        End If
+
+                        orderBy.ClauseList.Add(myOrderByClauseElem)
+
+                    next
+                else
+                    dim myOrderByClauseElem as new ClauseWrappers.OrderByClauseWrapper.OrderByClauseElement()
+                    myOrderByClauseElem.FieldName = BLL.SchemaCatalog.GetFieldNameByPropertyName(BLL.SchemaCatalog.CurrentProviderSchemas.<%=formattedTableName%>Schema, MyBase.SortExpression)
+					If myOrderByClauseElem.FieldName = "" Then myOrderByClauseElem.FieldName = MyBase.SortExpression
+					
+                    select case MyBase.SortDirection
+                        case System.Web.UI.WebControls.SortDirection.Ascending
+                            myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Ascending
+                            
+                        case System.Web.UI.WebControls.SortDirection.Descending
+                            myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Descending
+                            
+                    end select
+
+                    orderBy.ClauseList.Add(myOrderByClauseElem)
+                end if
+            end if
+
+
+            'bind it
+            dim virtItemCount as Integer
+            dim results as List(Of DDL.DTOs.<%=formattedTableName%>)
+			If AllowPaging Then
+				results = BLL.Management.<%=formattedTableName%>Manager.GetInstance().GetRecords(WhereClause, orderBy, MyBase.PageIndex + 1, MyBase.PageSize, virtItemCount)
+			Else
+				results = BLL.Management.<%=formattedTableName%>Manager.GetInstance().GetRecords(WhereClause, orderBy)
+				virtItemCount = results.Count
+			End If
+			
+            MyBase.VirtualItemCount = virtItemCount
+            MyBase.DataSource = results
+            MyBase.DataBind()
+            
+        end sub
+
+        public sub New()
+            MyBase.DataKeyNames = new string() { "UniqueId" }
+            MyBase.AutoGenerateColumns = false
+            MyBase.AllowPaging = true
+            MyBase.AllowSorting = true
+        end sub
+
+        'Handle the paging/sorting events internally to save coding on the page
+        protected overrides sub OnPageIndexChanging(byval e as System.Web.UI.WebControls.GridViewPageEventArgs)
+            e.Cancel = true
+            MyBase.OnPageIndexChanging(e)
+
+            'save the new page index
+            MyBase.PageIndex = e.NewPageIndex
+
+            BindGrid()
+			OnPageIndexChanged(EventArgs.Empty)
+        end sub
+
+        protected overrides sub OnSorting(ByVal e as System.Web.UI.WebControls.GridViewSortEventArgs)
+            e.Cancel = true
+            MyBase.OnSorting(e)
+
+            'save the new sort options
+            MyBase.SortExpression = e.SortExpression
+            MyBase.SortDirection = e.SortDirection
+
+            BindGrid()
+			OnSorted(EventArgs.Empty)
+        end sub
+    End Class
+End Namespace

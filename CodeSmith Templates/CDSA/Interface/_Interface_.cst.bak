@@ -1,0 +1,101 @@
+<%@ CodeTemplate Language="VB" TargetLanguage="Text" src="../../CSLib.vb" Inherits="" Debug="False" %>
+<%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Category="Context" Description="" %>
+<%@ Property Name="IgnorePrefix" Type="System.String" Default="Cms" Optional="True" Category="Input" Description="Ignore tables with the given prefix" %>
+<%@ Property Name="IncludePrefix" Type="System.String" Default="" Optional="True" Category="Input" Description="Only process tables with the given prefix" %>
+<%@ Property Name="RootDirectory" Type="System.String" Default="c:\CWCode\_UI\" Optional="False" Category="Output" Description="Where to output the UI code and its subfolders." %>
+<%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
+<%@ Property Name="RIAServices" Type="System.Boolean" Default="False" Optional="False" Category="Options" Description="Generate RIA service classes for ASP.NET/Silverlight." %>
+<%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="CodeSmith.Engine" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+
+<%
+	'format the root folder
+	if not RootDirectory.EndsWith("\") then RootDirectory &= "\"
+	
+%>
+
+<script runat="template">
+'declare variables
+dim currentTemplate as CodeTemplate
+
+public sub Go()
+		
+	'*** ROOT ***
+	'create the output folder
+	me.Response.Write("Creating UI Files in (" & RootDirectory & ") ...")
+	CSLib.SafeCreateDirectory(RootDirectory)
+	
+			
+	'*** SERVER CONTROLS ***
+	'create the output folder
+	CSLib.SafeCreateDirectory(RootDirectory & "ServerControls\")
+		
+	'create the nnnPagingGridView for each Entity
+	currentTemplate=me.GetCodeTemplateInstance(".\ServerControls\nnnPagingGridView.cst",true)
+	currentTemplate.SetProperty("RootNs", RootNs)
+	currentTemplate.SetProperty("Ns", Ns)
+	for i as integer=0 to SourceDatabase.Tables.count -1
+		if IgnorePrefix<>"" then
+			if SourceDatabase.Tables.Item(i).Name.StartsWith(IgnorePrefix) then continue for
+		end if
+		if IncludePrefix<>"" then
+			if not SourceDatabase.Tables.Item(i).Name.StartsWith(IncludePrefix) then continue for
+		end if
+		
+		
+		currentTemplate.SetProperty("Table", SourceDatabase.Tables.Item(i))
+		currentTemplate.RenderToFile(RootDirectory & "ServerControls\" & CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) & "PagingGridView.cs", true)
+
+	next i
+	
+	
+	'VB VERSIONS
+	CSLib.SafeCreateDirectory(RootDirectory & "ServerControls\VB\")
+	'create the VBnnnPagingGridView for each Entity
+	currentTemplate=me.GetCodeTemplateInstance(".\ServerControls\VBnnnPagingGridView.cst",true)
+	currentTemplate.SetProperty("RootNs", RootNs)
+	currentTemplate.SetProperty("Ns", Ns)
+	for i as integer=0 to SourceDatabase.Tables.count -1
+		if IgnorePrefix<>"" then
+			if SourceDatabase.Tables.Item(i).Name.StartsWith(IgnorePrefix) then continue for
+		end if
+		if IncludePrefix<>"" then
+			if not SourceDatabase.Tables.Item(i).Name.StartsWith(IncludePrefix) then continue for
+		end if
+		
+		currentTemplate.SetProperty("Table", SourceDatabase.Tables.Item(i))
+		currentTemplate.RenderToFile(RootDirectory & "ServerControls\VB\" & CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) & "PagingGridView.vb", true)
+	next i
+	
+	'are we creating RIA services?
+	if RIAServices then
+		'create the output folder
+		CSLib.SafeCreateDirectory(RootDirectory & "RIAServices\")
+		CSLib.SafeCreateDirectory(RootDirectory & "RIAServices\VB\")
+		
+		'we only have VB version for VB ASP.NET site
+		'create the VBnnnPagingGridView for each Entity
+		currentTemplate=me.GetCodeTemplateInstance(".\RIAServices\VBnnnService.cst",true)
+		currentTemplate.SetProperty("RootNs", RootNs)
+		currentTemplate.SetProperty("Ns", Ns)
+		for i as integer=0 to SourceDatabase.Tables.count -1
+			if IgnorePrefix<>"" then
+				if SourceDatabase.Tables.Item(i).Name.StartsWith(IgnorePrefix) then continue for
+			end if
+			if IncludePrefix<>"" then
+				if not SourceDatabase.Tables.Item(i).Name.StartsWith(IncludePrefix) then continue for
+			end if
+			
+			currentTemplate.SetProperty("Table", SourceDatabase.Tables.Item(i))
+			currentTemplate.RenderToFile(RootDirectory & "RIAServices\VB\" & CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) & "Service.vb", true)
+		next i
+	end if
+		
+	me.Response.WriteLine("DONE!")
+end sub
+</script>
+<%me.Go()%>
