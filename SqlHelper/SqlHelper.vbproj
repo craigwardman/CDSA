@@ -123,12 +123,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClauseWrappers\ClauseWrappers.vbproj">
-      <Project>{BF419BEA-D545-469D-BB28-6631CCF75343}</Project>
-      <Name>ClauseWrappers</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="COPYING" />
     <None Include="COPYING.LESSER" />
   </ItemGroup>
@@ -148,6 +142,12 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ClauseWrappers\ClauseWrappers.vbproj">
+      <Project>{bf419bea-d545-469d-bb28-6631ccf75343}</Project>
+      <Name>ClauseWrappers</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
