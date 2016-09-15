@@ -1,5 +1,5 @@
 # CDSA
-"CDSA" is a set of CodeSmith templates and associated infrastructure libraries for a legacy tiered application architecture.
+"CDSA" is a set of CodeSmith templates and associated infrastructure libraries for a legacy tiered application architecture. It is here for posterity for building/updating dependant projects.
 
 Given a compatible SQL database and a copy of CodeSmith, the templates will generate a C# architecture which can then be coded against in Visual Studio. Each output project will contain a folder starting with "_" which is where the generated code should stay. Any modifications you wish to make for your application should be outside of these folders, within the relevent project.
 
@@ -22,6 +22,10 @@ To enable this, all files are marked as partial. You can use inheritance to over
 - SQLDAL.csproj (sql data access layer)
   - A SQL implementation of the data access layer, usually the only one you need
   - Implements the DML and exchanges DTOs
+
+- Interface (Example consumers [ui/service])
+ - ServerControls are for ASP.NET WebForms and rely on "ControlExtensions" library
+ - RiaServices are for Silverlight RIA service apps
 
 The CodeSmith templates should be run by exectuting "_nTier_.cst" this will execute the other templates as required.
 
