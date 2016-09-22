@@ -1,4 +1,4 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
 <%@ Property Name="Table" Type="SchemaExplorer.TableSchema" Category="Context" Description="" %>
 <%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
 <%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
@@ -10,8 +10,8 @@ dim formattedTableName as string=CSLib.GetFormattedName(Table.Name)
 %>
 Namespace ServerControls
 
-	Public Class <%=formattedTableName%>PagingGridView
-		Inherits ControlExtensions.WebControlExtensions.GridViewExtensions.CustomPagingGridView
+    Public Class <%=formattedTableName%>PagingGridView
+        Inherits ControlExtensions.WebControlExtensions.GridViewExtensions.CustomPagingGridView
     
         <System.ComponentModel.Browsable(false)> _
         Public Property WhereClause as ClauseWrappers.WhereClauseWrapper.WhereClause
@@ -37,7 +37,7 @@ Namespace ServerControls
                         dim myOrderByClauseElem as new ClauseWrappers.OrderByClauseWrapper.OrderByClauseElement()
                         If expr.Contains(" ") And (expr.ToUpper.EndsWith("ASC") Or expr.ToUpper.EndsWith("DESC")) Then
                             myOrderByClauseElem.FieldName = BLL.SchemaCatalog.GetFieldNameByPropertyName(BLL.SchemaCatalog.CurrentProviderSchemas.<%=formattedTableName%>Schema, expr.Split(" "c)(0))
-							If myOrderByClauseElem.FieldName = "" Then myOrderByClauseElem.FieldName = expr.Split(" "c)(0)
+                            If myOrderByClauseElem.FieldName = "" Then myOrderByClauseElem.FieldName = expr.Split(" "c)(0)
 
                             Select Case expr.ToUpper().Split(" "c)(1)
                                 Case "ASC"
@@ -47,8 +47,8 @@ Namespace ServerControls
                             End Select
                         Else
                             myOrderByClauseElem.FieldName = BLL.SchemaCatalog.GetFieldNameByPropertyName(BLL.SchemaCatalog.CurrentProviderSchemas.<%=formattedTableName%>Schema, expr)
-							If myOrderByClauseElem.FieldName = "" Then myOrderByClauseElem.FieldName = expr
-							
+                            If myOrderByClauseElem.FieldName = "" Then myOrderByClauseElem.FieldName = expr
+                            
                             Select Case MyBase.SortDirection
 
                                 Case System.Web.UI.WebControls.SortDirection.Ascending
@@ -66,8 +66,8 @@ Namespace ServerControls
                 else
                     dim myOrderByClauseElem as new ClauseWrappers.OrderByClauseWrapper.OrderByClauseElement()
                     myOrderByClauseElem.FieldName = BLL.SchemaCatalog.GetFieldNameByPropertyName(BLL.SchemaCatalog.CurrentProviderSchemas.<%=formattedTableName%>Schema, MyBase.SortExpression)
-					If myOrderByClauseElem.FieldName = "" Then myOrderByClauseElem.FieldName = MyBase.SortExpression
-					
+                    If myOrderByClauseElem.FieldName = "" Then myOrderByClauseElem.FieldName = MyBase.SortExpression
+                    
                     select case MyBase.SortDirection
                         case System.Web.UI.WebControls.SortDirection.Ascending
                             myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Ascending
@@ -85,13 +85,13 @@ Namespace ServerControls
             'bind it
             dim virtItemCount as Integer
             dim results as List(Of DDL.DTOs.<%=formattedTableName%>)
-			If AllowPaging Then
-				results = BLL.Management.<%=formattedTableName%>Manager.GetInstance().GetRecords(WhereClause, orderBy, MyBase.PageIndex + 1, MyBase.PageSize, virtItemCount)
-			Else
-				results = BLL.Management.<%=formattedTableName%>Manager.GetInstance().GetRecords(WhereClause, orderBy)
-				virtItemCount = results.Count
-			End If
-			
+            If AllowPaging Then
+                results = BLL.Management.<%=formattedTableName%>Manager.GetInstance().GetRecords(WhereClause, orderBy, MyBase.PageIndex + 1, MyBase.PageSize, virtItemCount)
+            Else
+                results = BLL.Management.<%=formattedTableName%>Manager.GetInstance().GetRecords(WhereClause, orderBy)
+                virtItemCount = results.Count
+            End If
+            
             MyBase.VirtualItemCount = virtItemCount
             MyBase.DataSource = results
             MyBase.DataBind()
@@ -114,7 +114,7 @@ Namespace ServerControls
             MyBase.PageIndex = e.NewPageIndex
 
             BindGrid()
-			OnPageIndexChanged(EventArgs.Empty)
+            OnPageIndexChanged(EventArgs.Empty)
         end sub
 
         protected overrides sub OnSorting(ByVal e as System.Web.UI.WebControls.GridViewSortEventArgs)
@@ -126,7 +126,7 @@ Namespace ServerControls
             MyBase.SortDirection = e.SortDirection
 
             BindGrid()
-			OnSorted(EventArgs.Empty)
+            OnSorted(EventArgs.Empty)
         end sub
     End Class
 End Namespace

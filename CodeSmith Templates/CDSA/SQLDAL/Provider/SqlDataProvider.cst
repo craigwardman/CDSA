@@ -1,4 +1,4 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
 <%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
 <%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
 <%@ Assembly Name="SchemaExplorer" %>
@@ -6,110 +6,87 @@
 using System;
 using System.Collections.Generic;
 
-namespace <%=RootNs%>.SQLDAL
+namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Provider
 {
-	
-	<%
-	if Ns<>"" then
-	%>
-	namespace <%=Ns & "."%>Provider
-	<%
-	else
-	%>
-	namespace Provider
-	<%
-	end if
-	%>
-	{
-		public partial class SqlDataProvider : DML.Provider.IDataProvider
-		{
-	
-			//helper
-			internal readonly SqlHelper.SqlHelper sqlHelper;
-	
-			//data managers can be cached
-			private Dictionary<DDL.Definitions.Schemas.ISchemaBase, Management.SqlDataManager> _dataManagerCache = new Dictionary<DDL.Definitions.Schemas.ISchemaBase, Management.SqlDataManager>();
-	
-			private SqlSchemaCatalog _sqlSchemaCatalogue = new SqlSchemaCatalog();
-	
-			//ctor
-			public SqlDataProvider(string connectionString)
-			{
-				sqlHelper = new SqlHelper.SqlHelper(connectionString);
-			}
-	
-			#region IDataProvider Members
-	
-			public bool IsValid()
-			{
-                return (sqlHelper != null && sqlHelper.IsValidConnection());
-			}
-	
-			public DML.Management.DataManagerBase ManagerFactory(DDL.Definitions.Schemas.ISchemaBase targetSchema)
-			{
-				//only load the manager for this schema if is not in the cache
-				if (!_dataManagerCache.ContainsKey(targetSchema))
-				{
-					//load the correct manager
-                    try
-                    {
-                        _dataManagerCache.Add(targetSchema, new Management.SqlDataManager(sqlHelper, targetSchema));
-                    }
-                    catch (NullReferenceException)
-                    {
-                        //try again
-                        return ManagerFactory(targetSchema);
-                    }
-                    catch (ArgumentException) { }
-                    
-				}
+    public partial class SqlDataProvider : DML.Provider.IDataProvider
+    {
+        // helper
+        internal readonly SqlHelper.SqlHelper SqlHelper;
 
-	
-				//return the instance
-				return _dataManagerCache[targetSchema];
-			}
-	
-			public DDL.Definitions.ISchemaCatalog SchemaCatalog
-			{
-				get { return _sqlSchemaCatalogue; }
-			}
-	
-	
-			#endregion
-	
-			#region IWhereClauseHandler Members
-	
-			public object ParseWhereClause(ClauseWrappers.WhereClauseWrapper.WhereClause clause)
-			{
-				if (this.IsValid())
-				{
-					return this.sqlHelper.ParseWhereClause(clause);
-				}
-				else
-				{
-					return null;
-				}
-			}
-	
-			#endregion
-	
-			#region IOrderByClauseHandler Members
-	
-			public object ParseOrderByClause(ClauseWrappers.OrderByClauseWrapper.OrderByClause clause)
-			{
-				if (this.IsValid())
-				{
-					return this.sqlHelper.ParseOrderByClause(clause);
-				}
-				else
-				{
-					return null;
-				}
-			}
-	
-			#endregion
-	
-			
-		}
-	}
+        // data managers can be cached
+        private Dictionary<DDL.Definitions.Schemas.ISchemaBase, Management.SqlDataManager> dataManagerCache = new Dictionary<DDL.Definitions.Schemas.ISchemaBase, Management.SqlDataManager>();
+
+        private SqlSchemaCatalog sqlSchemaCatalogue = new SqlSchemaCatalog();
+
+        // ctor
+        public SqlDataProvider(string connectionString)
+        {
+            this.SqlHelper = new SqlHelper.SqlHelper(connectionString);
+        }
+
+        #region IDataProvider Members
+        public DDL.Definitions.ISchemaCatalog SchemaCatalog
+        {
+            get { return this.sqlSchemaCatalogue; }
+        }
+        
+        public bool IsValid()
+        {
+            return this.SqlHelper != null && this.SqlHelper.IsValidConnection();
+        }
+
+        public DML.Management.DataManagerBase ManagerFactory(DDL.Definitions.Schemas.ISchemaBase targetSchema)
+        {
+            // only load the manager for this schema if is not in the cache
+            if (!this.dataManagerCache.ContainsKey(targetSchema))
+            {
+                // load the correct manager
+                try
+                {
+                    this.dataManagerCache.Add(targetSchema, new Management.SqlDataManager(this.SqlHelper, targetSchema));
+                }
+                catch (NullReferenceException)
+                {
+                    // try again
+                    return this.ManagerFactory(targetSchema);
+                }
+                catch (ArgumentException) 
+                { 
+                }
+            }
+
+            // return the instance
+            return this.dataManagerCache[targetSchema];
+        }
+        #endregion
+
+        #region IWhereClauseHandler Members
+
+        public object ParseWhereClause(ClauseWrappers.WhereClauseWrapper.WhereClause clause)
+        {
+            if (this.IsValid())
+            {
+                return this.SqlHelper.ParseWhereClause(clause);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        #endregion
+
+        #region IOrderByClauseHandler Members
+        public object ParseOrderByClause(ClauseWrappers.OrderByClauseWrapper.OrderByClause clause)
+        {
+            if (this.IsValid())
+            {
+                return this.SqlHelper.ParseOrderByClause(clause);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        #endregion
+    }
 }

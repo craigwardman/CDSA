@@ -1,26 +1,13 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+<%@ Property Name="IdentityTypeName" Type="System.String" Default="System.Int32" Optional="False" Category="Options" Description="Write the type of the ID, e.g. System.Int32, System.Int64 or System.Guid" %>
 <%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
 <%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Import Namespace="SchemaExplorer" %>
-namespace <%=RootNs%>.DDL
+namespace <%=RootNs%>.DDL<%= IIf(Ns<>"", "." & Ns, "") %>.Definitions
 {
-	<%
-	if Ns<>"" then
-	%>
-	namespace <%=Ns & "."%>Definitions
-	<%
-	else
-	%>
-	namespace Definitions
-	<%
-	end if
-	%>
-	{
-		public partial interface IRecordData
-		{
-			int UniqueId { get; set; }
-	
-		}
-	}
+    public partial interface IRecordData
+    {
+        <%= IdentityTypeName %> UniqueId { get; set; }
+    }
 }

@@ -1,274 +1,252 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" %>
+<%@ Property Name="IdentityTypeName" Type="System.String" Default="System.Int32" Optional="False" Category="Options" Description="Write the type of the ID, e.g. System.Int32, System.Int64 or System.Guid" %>
 <%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
 <%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 
-namespace <%=RootNs%>.SQLDAL
+namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Management
 {
-	<%
-	if Ns<>"" then
-	%>
-	namespace <%=Ns & "."%>Management
-	<%
-	else
-	%>
-	namespace Management
-	<%
-	end if
-	%>
-	{
-		public partial class SqlDataManager : DML.Management.DataManagerBase
-		{
-			private SqlHelper.SqlHelper _helper;
-	
-			public SqlDataManager(SqlHelper.SqlHelper helperInstance,DDL.Definitions.Schemas.ISchemaBase targetSchema) : 
-					base(targetSchema)
-			{
-				_helper = helperInstance;
-			}
-	
-			public override DDL.Definitions.IRecordData GetDataById(int id)
-			{
-				//get a single record using its ID
-				DataSet rawData = _helper.Select(DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)_helper.ParseWhereClause(GetIdClause(id)));
-	
-				if (rawData != null && rawData.Tables.Count > 0 && rawData.Tables[0].Rows.Count > 0)
-				{
-					return Data.DataFactory.CreateDataInstance(DataSchema, rawData.Tables[0].Rows[0]);
-				}
-				else
-				{
-					return null;
-				}
-			}
-			
-			public override List<DDL.Definitions.IRecordData> GetData()
+    public partial class SqlDataManager : DML.Management.DataManagerBase
+    {
+        private SqlHelper.SqlHelper helper;
+
+        public SqlDataManager(SqlHelper.SqlHelper helperInstance, DDL.Definitions.Schemas.ISchemaBase targetSchema) : 
+                base(targetSchema)
+        {
+            this.helper = helperInstance;
+        }
+
+        public override DDL.Definitions.IRecordData GetDataById(<%= IdentityTypeName %> id)
+        {
+            // get a single record using its ID
+            DataSet rawData = this.helper.Select(this.DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(this.GetIdClause(id)));
+
+            if (rawData != null && rawData.Tables.Count > 0 && rawData.Tables[0].Rows.Count > 0)
             {
-                return GetData(null);
+                return Data.DataFactory.CreateDataInstance(this.DataSchema, rawData.Tables[0].Rows[0]);
             }
-	
-			public override List<DDL.Definitions.IRecordData> GetData(ClauseWrappers.WhereClauseWrapper.WhereClause where)
-			{
-				return GetData(where, null);
-			}
-	
-			public override List<DDL.Definitions.IRecordData> GetData(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy)
-			{
-				//get multiple records, matching the where clause
-				DataSet rawData = _helper.Select(DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)_helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)_helper.ParseOrderByClause(orderBy));
-	
-				List<DDL.Definitions.IRecordData> results = new List<DDL.Definitions.IRecordData>();
-	
-				if (rawData != null && rawData.Tables.Count > 0)
-				{
-					foreach (DataRow dr in rawData.Tables[0].Rows)
-					{
-						results.Add(Data.DataFactory.CreateDataInstance(DataSchema, dr));
-					}
-				}
-	
-				return results;
-			}
-			
-			public override List<DDL.Definitions.IRecordData> GetData(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy, int pageNumber, int pageSize)
+            else
             {
-                //to use paging, an orderBy clause MUST be specified, if we have received null, then order by the primary key
-                if (orderBy == null || orderBy.ClauseList.Count == 0)
+                return null;
+            }
+        }
+        
+        public override List<DDL.Definitions.IRecordData> GetData()
+        {
+            return this.GetData(null);
+        }
+
+        public override List<DDL.Definitions.IRecordData> GetData(ClauseWrappers.WhereClauseWrapper.WhereClause where)
+        {
+            return this.GetData(where, null);
+        }
+        
+        public override List<DDL.Definitions.IRecordData> GetData(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy)
+        {
+            // this version is only doing basic select so it can use the data reader version
+            List<DDL.Definitions.IRecordData> results = new List<DDL.Definitions.IRecordData>();
+
+            // get multiple records, matching the where clause
+            SqlCommand selectCommand = this.helper.GetSelectCommand(DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy), -1, -1, false);
+
+            // now execute the command and for each row we will create a data instance
+            this.helper.ExecuteReader(
+                selectCommand, 
+                null, 
+                dr =>
                 {
-                    orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
+                    results.Add(Data.DataFactory.CreateDataInstance(this.DataSchema, dr));
+                });
+
+            return results;
+        }
+        
+        public override List<DDL.Definitions.IRecordData> GetData(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy, int pageNumber, int pageSize)
+        {
+            // to use paging, an orderBy clause MUST be specified, if we have received null, then order by the primary key
+            if (orderBy == null || orderBy.ClauseList.Count == 0)
+            {
+                orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
+            }
+
+            DataSet rawData = this.helper.Select(DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy), pageNumber, pageSize, false);
+
+            if (rawData != null && rawData.Tables.Count > 0)
+            {
+                return Data.DataFactory.CreateDataInstances(this.DataSchema, rawData.Tables[0]);
+            }
+            else
+            {
+                return new List<DDL.Definitions.IRecordData>();
+            }
+        }
+
+        public override List<DDL.Definitions.IRecordData> GetData(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy, int pageNumber, int pageSize, out int totalRecords)
+        {
+            // to use paging, an orderBy clause MUST be specified, if we have received null, then order by the primary key
+            if (orderBy == null || orderBy.ClauseList.Count == 0)
+            {
+                orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
+            }
+        
+            // get multiple records,paged, matching the where clause
+            DataSet rawData = this.helper.Select(DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy), pageNumber, pageSize);
+
+            List<DDL.Definitions.IRecordData> results = new List<DDL.Definitions.IRecordData>();
+
+            if (pageSize > 0 && pageNumber > 0)
+            {
+                // two tables returned for paged call, results + total row count
+                if (rawData != null && rawData.Tables.Count > 1)
+                {
+                    results = Data.DataFactory.CreateDataInstances(this.DataSchema, rawData.Tables[0]);
+                    totalRecords = (int)rawData.Tables[1].Rows[0][0];
                 }
+                else
+                {
+                    totalRecords = 0;
+                }
+            }
+            else
+            {
+                // no paging was used - only 1 table
+                if (rawData != null && rawData.Tables.Count > 0)
+                {
+                    results = Data.DataFactory.CreateDataInstances(this.DataSchema, rawData.Tables[0]);
+                    totalRecords = results.Count;
+                }
+                else
+                {
+                    totalRecords = 0;
+                }
+            }
 
-                DataSet rawData = _helper.Select(DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)_helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)_helper.ParseOrderByClause(orderBy), pageNumber, pageSize, false);
+            return results;
+        }
+        
+        public override List<<%= IdentityTypeName %>> GetDataIDs()
+        {
+            return this.GetDataIDs(null);
+        }
 
-                List<DDL.Definitions.IRecordData> results = new List<DDL.Definitions.IRecordData>();
+        public override List<<%= IdentityTypeName %>> GetDataIDs(ClauseWrappers.WhereClauseWrapper.WhereClause where)
+        {
+            return this.GetDataIDs(where, null);
+        }
 
+        public override List<<%= IdentityTypeName %>> GetDataIDs(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy)
+        {
+            // get multiple records, matching the where clause
+            DataSet rawData = this.helper.Select(DataSchema.DataContainerName, this.DataSchema.DataContainerName + "." + DataSchema.UniqueId, (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy));
+
+            List<<%= IdentityTypeName %>> results = new List<<%= IdentityTypeName %>>();
+
+            if (rawData != null && rawData.Tables.Count > 0)
+            {
+                foreach (DataRow dr in rawData.Tables[0].Rows)
+                {
+                    results.Add((<%= IdentityTypeName %>)dr[this.DataSchema.UniqueId]);
+                }
+            }
+
+            return results;
+        }
+        
+        public override List<<%= IdentityTypeName %>> GetDataIDs(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy, int pageNumber, int pageSize)
+        {
+            // to use paging, an orderBy clause MUST be specified, if we have received null, then order by the primary key
+            if (orderBy == null || orderBy.ClauseList.Count == 0)
+            {
+                orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(this.DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
+            }
+
+            DataSet rawData = this.helper.Select(this.DataSchema.DataContainerName, this.DataSchema.UniqueId, (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy), pageNumber, pageSize, false);
+
+            List<<%= IdentityTypeName %>> results = new List<<%= IdentityTypeName %>>();
+
+            if (rawData != null && rawData.Tables.Count > 0)
+            {
+                foreach (DataRow dr in rawData.Tables[0].Rows)
+                {
+                    results.Add((<%= IdentityTypeName %>)dr[this.DataSchema.UniqueId]);
+                }
+            }
+
+            return results;
+        }
+
+        public override List<<%= IdentityTypeName %>> GetDataIDs(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy, int pageNumber, int pageSize, out int totalRecords)
+        {
+            // to use paging, an orderBy clause MUST be specified, if we have received null, then order by the primary key
+            if (orderBy == null || orderBy.ClauseList.Count == 0)
+            {
+                orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
+            }
+        
+            // get multiple records,paged, matching the where clause
+            DataSet rawData = this.helper.Select(this.DataSchema.DataContainerName, this.DataSchema.UniqueId, (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy), pageNumber, pageSize);
+
+            List<<%= IdentityTypeName %>> results = new List<<%= IdentityTypeName %>>();
+
+            if (pageSize > 0 && pageNumber > 0)
+            {
+                // two tables returned for paged call, results + total row count
+                if (rawData != null && rawData.Tables.Count > 1)
+                {
+                    foreach (DataRow dr in rawData.Tables[0].Rows)
+                    {
+                        results.Add((<%= IdentityTypeName %>)dr[this.DataSchema.UniqueId]);
+                    }
+
+                    totalRecords = (int)rawData.Tables[1].Rows[0][0];
+                }
+                else
+                {
+                    totalRecords = 0;
+                }
+            }
+            else
+            {
+                // no paging was used - only 1 table
                 if (rawData != null && rawData.Tables.Count > 0)
                 {
                     foreach (DataRow dr in rawData.Tables[0].Rows)
                     {
-                        results.Add(Data.DataFactory.CreateDataInstance(DataSchema, dr));
+                        results.Add((<%= IdentityTypeName %>)dr[this.DataSchema.UniqueId]);
                     }
-                }
 
-                return results;
-            }
-	
-			public override List<DDL.Definitions.IRecordData> GetData(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy, int pageNumber, int pageSize, out int totalRecords)
-			{
-				//to use paging, an orderBy clause MUST be specified, if we have received null, then order by the primary key
-				if (orderBy == null || orderBy.ClauseList.Count == 0)
-				{
-					orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
-				}
-			
-				//get multiple records,paged, matching the where clause
-				DataSet rawData = _helper.Select(DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)_helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)_helper.ParseOrderByClause(orderBy), pageNumber, pageSize);
-	
-				List<DDL.Definitions.IRecordData> results = new List<DDL.Definitions.IRecordData>();
-	
-				if (pageSize > 0 && pageNumber > 0)
-                {
-                    //two tables returned for paged call, results + total row count
-                    if (rawData != null && rawData.Tables.Count > 1)
-                    {
-                        foreach (DataRow dr in rawData.Tables[0].Rows)
-                        {
-                            results.Add(Data.DataFactory.CreateDataInstance(DataSchema, dr));
-                        }
-
-                        totalRecords = (int)rawData.Tables[1].Rows[0][0];
-                    }
-                    else
-                    {
-                        totalRecords = 0;
-                    }
+                    totalRecords = results.Count;
                 }
                 else
                 {
-                    //no paging was used - only 1 table
-                    if (rawData != null && rawData.Tables.Count > 0)
-                    {
-                        foreach (DataRow dr in rawData.Tables[0].Rows)
-                        {
-                            results.Add(Data.DataFactory.CreateDataInstance(DataSchema, dr));
-                        }
-
-                        totalRecords = results.Count;
-                    }
-                    else
-                    {
-                        totalRecords = 0;
-                    }
+                    totalRecords = 0;
                 }
-	
-				return results;
-			}
-			
-			public override List<int> GetDataIDs()
-            {
-                return GetDataIDs(null);
             }
-	
-			public override List<int> GetDataIDs(ClauseWrappers.WhereClauseWrapper.WhereClause where)
-			{
-				return GetDataIDs(where, null);
-			}
-	
-			public override List<int> GetDataIDs(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy)
-			{
-				//get multiple records, matching the where clause
-				DataSet rawData = _helper.Select(DataSchema.DataContainerName, DataSchema.DataContainerName + "." + DataSchema.UniqueId, (SqlHelper.SqlClauses.SqlWhereClause)_helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)_helper.ParseOrderByClause(orderBy));
-	
-				List<int> results = new List<int>();
-	
-				if (rawData != null && rawData.Tables.Count > 0)
-				{
-					foreach (DataRow dr in rawData.Tables[0].Rows)
-					{
-						results.Add((int)dr[DataSchema.UniqueId]);
-					}
-				}
-	
-				return results;
-			}
-			
-			public override List<int> GetDataIDs(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy, int pageNumber, int pageSize)
+
+            return results;
+        }
+
+        public override void DeleteData(ClauseWrappers.WhereClauseWrapper.WhereClause where)
+        {
+            // delete records using the where clause
+            this.helper.Delete(this.DataSchema.DataContainerName, (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where));
+        }
+
+        public override <%= IdentityTypeName %> SaveData(DDL.Definitions.IRecordData data)
+        {
+            if (data.UniqueId <%= IIf(IdentityTypeName="System.Guid", "!= System.Guid.Empty", "> 0") %>)
             {
-                //to use paging, an orderBy clause MUST be specified, if we have received null, then order by the primary key
-                if (orderBy == null || orderBy.ClauseList.Count == 0)
-                {
-                    orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
-                }
-
-                DataSet rawData = _helper.Select(DataSchema.DataContainerName, DataSchema.DataContainerName + "." + DataSchema.UniqueId, (SqlHelper.SqlClauses.SqlWhereClause)_helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)_helper.ParseOrderByClause(orderBy), pageNumber, pageSize, false);
-
-                List<int> results = new List<int>();
-
-                if (rawData != null && rawData.Tables.Count > 0)
-                {
-                    foreach (DataRow dr in rawData.Tables[0].Rows)
-                    {
-                        results.Add((int)dr[DataSchema.UniqueId]);
-                    }
-                }
-
-                return results;
+                // update record by id
+                this.helper.Update(this.DataSchema.DataContainerName, Data.DataFactory.GetNameValuePairs(data), (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(GetIdClause(data.UniqueId)));
+                return data.UniqueId;
             }
-	
-			public override List<int> GetDataIDs(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy, int pageNumber, int pageSize, out int totalRecords)
-			{
-				//to use paging, an orderBy clause MUST be specified, if we have received null, then order by the primary key
-				if (orderBy == null || orderBy.ClauseList.Count == 0)
-				{
-					orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
-				}
-			
-				//get multiple records,paged, matching the where clause
-				DataSet rawData = _helper.Select(DataSchema.DataContainerName, DataSchema.DataContainerName + "." + DataSchema.UniqueId, (SqlHelper.SqlClauses.SqlWhereClause)_helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)_helper.ParseOrderByClause(orderBy), pageNumber, pageSize);
-	
-				List<int> results = new List<int>();
-	
-				if (pageSize > 0 && pageNumber > 0)
-                {
-                    //two tables returned for paged call, results + total row count
-                    if (rawData != null && rawData.Tables.Count > 1)
-                    {
-                        foreach (DataRow dr in rawData.Tables[0].Rows)
-                        {
-                            results.Add((int)dr[DataSchema.UniqueId]);
-                        }
-
-                        totalRecords = (int)rawData.Tables[1].Rows[0][0];
-                    }
-                    else
-                    {
-                        totalRecords = 0;
-                    }
-                }
-                else
-                {
-                    //no paging was used - only 1 table
-                    if (rawData != null && rawData.Tables.Count > 0)
-                    {
-                        foreach (DataRow dr in rawData.Tables[0].Rows)
-                        {
-                            results.Add((int)dr[DataSchema.UniqueId]);
-                        }
-
-                        totalRecords = results.Count;
-                    }
-                    else
-                    {
-                        totalRecords = 0;
-                    }
-                }
-	
-				return results;
-			}
-	
-			public override void DeleteData(ClauseWrappers.WhereClauseWrapper.WhereClause where)
-			{
-				//delete records using the where clause
-				_helper.Delete(DataSchema.DataContainerName, (SqlHelper.SqlClauses.SqlWhereClause)_helper.ParseWhereClause(where));
-			}
-	
-			public override int SaveData(DDL.Definitions.IRecordData data)
-			{
-				if(data.UniqueId > 0)
-				{
-					//update record by id
-					_helper.Update(DataSchema.DataContainerName, Data.DataFactory.GetNameValuePairs(data), (SqlHelper.SqlClauses.SqlWhereClause)_helper.ParseWhereClause(GetIdClause(data.UniqueId)));
-					return data.UniqueId;
-				}
-				else
-				{
-					//insert it
-					return _helper.Insert(DataSchema.DataContainerName, Data.DataFactory.GetNameValuePairs(data));
-				}
-			}
-	
-			
-		}
-	}
+            else
+            {
+                // insert it
+                return this.helper.Insert<%= IIf(IdentityTypeName="System.Guid", "Guid", "") %>(this.DataSchema.DataContainerName, Data.DataFactory.GetNameValuePairs(data));
+            }
+        }
+    }
 }

@@ -1,12 +1,15 @@
+﻿
 imports CodeSmith.Engine
 imports System.IO
 imports Microsoft.VisualBasic
 
 partial public class CSLib
-	inherits CodeTemplate
+	Inherits CodeTemplate
+    
+    Private Shared cslist As MapCollection = MapCollection.Load("System-CSharpAlias.csmap")
 
-	public shared function GetFormattedName(byval name as string) as string
-		dim formattedName as string=name
+	Public Shared Function GetFormattedName(ByVal name As String) As String
+		Dim formattedName As String=name
 		
 		'remove known prefixes
 		dim knownPrefixes as String() = { "tbl_", "int_", "dbl_", "dt_", "str_" }
@@ -50,11 +53,16 @@ partial public class CSLib
 			name=systemType.ToString()
 		end if
 			
-		if nullable and systemType.IsValueType then name &= "?"
-		return name
-	end function
+		
+            
+        cslist.ReturnKeyWhenNotFound = True
+        name = cslist(name)
+        
+        If nullable And systemType.IsValueType Then name &= "?"
+		Return name
+	End Function
 
-	public shared sub SafeCreateDirectory(byval path as string)
+	Public Shared Sub SafeCreateDirectory(ByVal path As String)
 			if not Directory.Exists(path) then
 				Directory.CreateDirectory(path)
 			end if

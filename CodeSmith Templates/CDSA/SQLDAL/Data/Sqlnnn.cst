@@ -1,4 +1,4 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
 <%@ Property Name="Table" Type="SchemaExplorer.TableSchema" Category="Context" Description="" %>
 <%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
 <%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
@@ -8,87 +8,103 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 
-
-namespace <%=RootNs%>.SQLDAL
+namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
 {
-	
-	
-	<%
-	dim formattedTableName as string=CSLib.GetFormattedName(Table.Name)
-	
-	if Ns<>"" then
-	%>
-	namespace <%=Ns & "."%>Data
-	<%
-	else
-	%>
-	namespace Data
-	<%
-	end if
-	%>
-	{
-		internal partial class Sql<%=formattedTableName%>
-		{
-			private DDL.DTOs.<%=formattedTableName%> _dto;
-			
-			//instanciate from an SQL datarow
-			partial void Sql<%=formattedTableName%>Ex(DataRow sqlRow);
-			public Sql<%=formattedTableName%>(DataRow sqlRow)
-			{
-				_dto = new DDL.DTOs.<%=formattedTableName%>();
-				
-				//parse the data into the properties using the schema
-				_dto.UniqueId = (<%=CSLib.GetTypeName(Table.PrimaryKey.MemberColumns.Item(0).SystemType,Table.PrimaryKey.MemberColumns.Item(0).AllowDBNull)%>)sqlRow[Schemas.Sql<%=formattedTableName%>Schema.GetInstance().UniqueId];
-	
-				<%
-				for i as integer = 0 to Table.NonPrimaryKeyColumns.Count-1
-				%>
-                <%if Table.NonPrimaryKeyColumns.Item(i).AllowDBNull then %>
-				if (sqlRow[Schemas.Sql<%=formattedTableName%>Schema.GetInstance().<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>] != DBNull.Value)
-                <%end if%>
-					_dto.<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%> = (<%=CSLib.GetTypeName(Table.NonPrimaryKeyColumns.Item(i).SystemType,Table.NonPrimaryKeyColumns.Item(i).AllowDBNull)%>)sqlRow[Schemas.Sql<%=formattedTableName%>Schema.GetInstance().<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>];
-				<%
-				next i
-				%>
-	
-				Sql<%=formattedTableName%>Ex(sqlRow);
-			}
-	
-			//instanciate from a <%=formattedTableName%>
-			public Sql<%=formattedTableName%>(DDL.DTOs.<%=formattedTableName%> dvlData)
-			{
-				_dto = dvlData;
-			}
-	
-			//provide a method to populate the name value pairs the sql helper needs
-			partial void GetNameValuePairsEx(List<KeyValuePair<string, object>> paramPairs);
-			public List<KeyValuePair<string, object>> GetNameValuePairs()
-			{
-				List<KeyValuePair<string, object>> paramPairs = new List<KeyValuePair<string, object>>();
-	
-				if (_dto != null)
-                {
-					//add everything except the primary key
-					<%
-					for i as integer = 0 to Table.NonPrimaryKeyColumns.Count-1
-					%>
-						paramPairs.Add(new KeyValuePair<string, object>(Schemas.Sql<%=formattedTableName%>Schema.GetInstance().<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>, _dto.<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>));
-					<%
-					next i
-					%>
-					
-					GetNameValuePairsEx(paramPairs);
-				}
-				
-				return paramPairs;
-			}
-			
-			//provider a method for returning the DTO
-            public DDL.DTOs.<%=formattedTableName%> DataTransferObject
+    <%
+    dim formattedTableName as string=CSLib.GetFormattedName(Table.Name)
+    %>
+    internal partial class Sql<%=formattedTableName%>
+    {
+        private DDL.DTOs.<%=formattedTableName%> dto;
+                
+        public Sql<%=formattedTableName%>(DataRow sqlRow)
+        {
+            this.dto = new DDL.DTOs.<%=formattedTableName%>();
+            
+            // parse the data into the properties using the schema
+            this.dto.UniqueId = (<%=CSLib.GetTypeName(Table.PrimaryKey.MemberColumns.Item(0).SystemType,Table.PrimaryKey.MemberColumns.Item(0).AllowDBNull)%>)sqlRow[Schemas.Sql<%=formattedTableName%>Schema.GetInstance().UniqueId];
+
+            <%
+            for i as integer = 0 to Table.NonPrimaryKeyColumns.Count-1
+            %>
+            <%if Table.NonPrimaryKeyColumns.Item(i).AllowDBNull then %>
+            if (sqlRow[Schemas.Sql<%=formattedTableName%>Schema.GetInstance().<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>] != DBNull.Value)
             {
-                get { return _dto; }
+            <%end if%>
+                this.dto.<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%> = (<%=CSLib.GetTypeName(Table.NonPrimaryKeyColumns.Item(i).SystemType,Table.NonPrimaryKeyColumns.Item(i).AllowDBNull)%>)sqlRow[Schemas.Sql<%=formattedTableName%>Schema.GetInstance().<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>];
+            <%if Table.NonPrimaryKeyColumns.Item(i).AllowDBNull then %>
             }
-		}
-	
-	}
+            <%end if%>
+                
+            <%
+            next i
+            %>
+            this.Sql<%=formattedTableName%>Ex(sqlRow);
+        }
+        
+        public Sql<%=formattedTableName%>(IDataReader sqlReader)
+        {
+            this.dto = new DDL.DTOs.<%=formattedTableName%>();
+            
+            // parse the data into the properties using the schema
+            this.dto.UniqueId = (<%=CSLib.GetTypeName(Table.PrimaryKey.MemberColumns.Item(0).SystemType,Table.PrimaryKey.MemberColumns.Item(0).AllowDBNull)%>)sqlReader[Schemas.Sql<%=formattedTableName%>Schema.GetInstance().UniqueId];
+
+            <%
+            for i as integer = 0 to Table.NonPrimaryKeyColumns.Count-1
+            %>
+            <%if Table.NonPrimaryKeyColumns.Item(i).AllowDBNull then %>
+            if (sqlReader[Schemas.Sql<%=formattedTableName%>Schema.GetInstance().<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>] != DBNull.Value)
+            {
+            <%end if%>
+                this.dto.<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%> = (<%=CSLib.GetTypeName(Table.NonPrimaryKeyColumns.Item(i).SystemType,Table.NonPrimaryKeyColumns.Item(i).AllowDBNull)%>)sqlReader[Schemas.Sql<%=formattedTableName%>Schema.GetInstance().<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>];
+            <%if Table.NonPrimaryKeyColumns.Item(i).AllowDBNull then %>
+            }
+            <%end if%>
+                
+            <%
+            next i
+            %>
+            this.Sql<%=formattedTableName%>Ex(sqlReader);
+        }
+
+        // instantiate from a <%=formattedTableName%>
+        public Sql<%=formattedTableName%>(DDL.DTOs.<%=formattedTableName%> dvlData)
+        {
+            this.dto = dvlData;
+        }
+        
+        // provider a method for returning the DTO
+        public DDL.DTOs.<%=formattedTableName%> DataTransferObject
+        {
+            get { return this.dto; }
+        }
+
+        public List<KeyValuePair<string, object>> GetNameValuePairs()
+        {
+            List<KeyValuePair<string, object>> paramPairs = new List<KeyValuePair<string, object>>();
+
+            if (this.dto != null)
+            {
+                // add everything except the primary key
+                <%
+                for i as integer = 0 to Table.NonPrimaryKeyColumns.Count-1
+                %>
+                paramPairs.Add(new KeyValuePair<string, object>(Schemas.Sql<%=formattedTableName%>Schema.GetInstance().<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>, this.dto.<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>));
+                <%
+                next i
+                %>
+                
+                this.GetNameValuePairsEx(paramPairs);
+            }
+            
+            return paramPairs;
+        }
+        
+        // instantiate from an SQL datarow
+        partial void Sql<%=formattedTableName%>Ex(DataRow sqlRow);
+        partial void Sql<%=formattedTableName%>Ex(IDataReader sqlRow);
+        
+        // provide a method to populate the name value pairs the sql helper needs
+        partial void GetNameValuePairsEx(List<KeyValuePair<string, object>> paramPairs);
+    }
 }

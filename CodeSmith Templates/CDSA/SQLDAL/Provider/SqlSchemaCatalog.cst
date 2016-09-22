@@ -1,4 +1,4 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
 <%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Category="Context" Description="" %>
 <%@ Property Name="IgnorePrefix" Type="System.String" Default="Cms" Optional="True" Category="Input" Description="Ignore tables with the given prefix" %>
 <%@ Property Name="IncludePrefix" Type="System.String" Default="" Optional="True" Category="Input" Description="Only process tables with the given prefix" %>
@@ -7,47 +7,29 @@
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Import Namespace="SchemaExplorer" %>
 
-namespace <%=RootNs%>.SQLDAL
+namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Provider
 {
-	<%
-	if Ns<>"" then
-	%>
-	namespace <%=Ns & "."%>Provider
-	<%
-	else
-	%>
-	namespace Provider
-	<%
-	end if
-	%>
-	{
-		public partial class SqlSchemaCatalog : DDL.Definitions.ISchemaCatalog
-		{
-	
-			#region ISchemaCatalog Members
-	
-			<%
-				for i as integer=0 to SourceDatabase.Tables.Count-1
-					if IgnorePrefix<>"" then
-						if SourceDatabase.Tables.Item(i).Name.StartsWith(IgnorePrefix) then continue for
-					end if
-					if IncludePrefix<>"" then
-						if not SourceDatabase.Tables.Item(i).Name.StartsWith(IncludePrefix) then continue for
-					end if
-				
-			%>
-				public DDL.Definitions.Schemas.I<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>Schema <%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>Schema
-				{
-					get { return Schemas.Sql<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>Schema.GetInstance(); }
-				}
-			<%
-			
-				next
-			%>
-			
-	
-			#endregion
-		}
-	
-	}
+    public partial class SqlSchemaCatalog : DDL.Definitions.ISchemaCatalog
+    {
+        #region ISchemaCatalog Members
+        <%
+            for i as integer=0 to SourceDatabase.Tables.Count-1
+                if IgnorePrefix<>"" then
+                    if SourceDatabase.Tables.Item(i).Name.StartsWith(IgnorePrefix) then continue for
+                end if
+                if IncludePrefix<>"" then
+                    if not SourceDatabase.Tables.Item(i).Name.StartsWith(IncludePrefix) then continue for
+                end if
+            
+        %>
+        
+        public DDL.Definitions.Schemas.I<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>Schema <%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>Schema
+        {
+            get { return Schemas.Sql<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>Schema.GetInstance(); }
+        }
+        <%
+            next
+        %>
+        #endregion
+    }
 }

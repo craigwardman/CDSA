@@ -1,60 +1,65 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" %>
 <%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
 <%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
 using System;
 using System.Collections.Generic;
 
-namespace <%=RootNs%>.BLL
+namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>
 {
-	<%
-	if Ns<>"" then
-	%>
-	namespace <%=Ns%>
-	{
-	<%
-	end if
-	%>
-		public class EntityValidationException : Exception
-		{
-			public readonly List<EntityValidationFault> Faults;
-	
-			public EntityValidationException(List<EntityValidationFault> faults) : 
-				base("Entity validation failed. See the faults list for more details")
-			{
-				this.Faults = faults;
-			}
-		}
-	
-		public class EntityValidationFault
-		{
-			private string _faultDataName;
-			public string FaultDataName {
-                get
-                {
-                    return _faultDataName;
-                }
-            }
-            private string _faultDescription;
-            public string FaultDescription
+    [Serializable]
+    public class EntityValidationException : Exception
+    {
+        public readonly List<EntityValidationFault> Faults;
+
+        public EntityValidationException(List<EntityValidationFault> faults) : 
+            base("Entity validation failed. See the faults list for more details")
+        {
+            this.Faults = faults;
+        }
+
+        [System.Security.Permissions.SecurityPermission(System.Security.Permissions.SecurityAction.Demand, SerializationFormatter = true)]
+        protected EntityValidationException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : 
+            base(info, context)
+        {
+            this.Faults = info.GetValue("Faults", typeof(List<EntityValidationFault>)) as List<EntityValidationFault>;
+        }
+
+        [System.Security.Permissions.SecurityPermission(System.Security.Permissions.SecurityAction.Demand, SerializationFormatter = true)]
+        public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+        {
+            info.AddValue("Faults", this.Faults, typeof(List<EntityValidationFault>));
+
+            base.GetObjectData(info, context);
+        }
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Really don't want another file for this, but don't want to nest it either, due to backward compatibility.")]
+    [Serializable]
+    public class EntityValidationFault
+    {
+        private string faultDataName;
+        private string faultDescription;
+    
+        public EntityValidationFault(string faultDataName, string faultDescription)
+        {
+            this.faultDataName = faultDataName;
+            this.faultDescription = faultDescription;
+        }
+        
+        public string FaultDataName 
+        {
+            get
             {
-                get
-                {
-                    return _faultDescription;
-                }
+                return this.faultDataName;
             }
-	
-			public EntityValidationFault(string faultDataName, string faultDescription)
-			{
-				this._faultDataName = faultDataName;
-                this._faultDescription = faultDescription;
-			}
-		}
-	
-	<%
-	if Ns<>"" then
-	%>
-	}
-	<%
-	end if
-	%>
+        }
+        
+        public string FaultDescription
+        {
+            get
+            {
+                return this.faultDescription;
+            }
+        }
+    }
 }

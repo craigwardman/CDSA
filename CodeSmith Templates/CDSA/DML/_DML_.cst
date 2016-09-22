@@ -1,4 +1,5 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" src="../../CSLib.vb" Inherits="" Debug="False" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" src="../../CSLib.vb" Inherits="" Debug="False" %>
+<%@ Property Name="IdentityTypeName" Type="System.String" Default="System.Int32" Optional="False" Category="Options" Description="Write the type of the ID, e.g. System.Int32, System.Int64 or System.Guid" %>
 <%@ Property Name="RootDirectory" Type="System.String" Default="c:\CWCode\_DML"  Optional="False" Category="Output" Description="Where to output the DML code and its subfolders." %>
 <%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
 <%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
@@ -40,6 +41,7 @@ public sub Go()
 	
 	'create the DataManagerBase
 	currentTemplate=me.GetCodeTemplateInstance(".\Management\DataManagerBase.cst",true)
+    currentTemplate.SetProperty("IdentityTypeName", IdentityTypeName)
 	currentTemplate.SetProperty("RootNs", RootNs)
 	currentTemplate.SetProperty("Ns", Ns)
 	currentTemplate.RenderToFile(RootDirectory & "Management\DataManagerBase.cs", true)

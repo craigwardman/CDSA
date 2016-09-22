@@ -1,4 +1,4 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
 <%@ Property Name="Table" Type="SchemaExplorer.TableSchema" Category="Context" Description="" %>
 <%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
 <%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
@@ -14,69 +14,42 @@ using System.Runtime.Serialization;
 using System.ComponentModel.DataAnnotations;
 <%end if%>
 
-namespace <%=RootNs%>.DDL
+namespace <%=RootNs%>.DDL<%= IIf(Ns<>"", "." & Ns, "") %>.DTOs
 {
-	<%
-	dim formattedTableName as string=CSLib.GetFormattedName(Table.Name)
-	
-	if Ns<>"" then
-	%>
-	namespace <%=Ns & "."%>DTOs
-	<%
-	else
-	%>
-	namespace DTOs
-	<%
-	end if
-	%>
-	{
-		[Serializable()]
-		<% If DTOsForWCF then %>
-		[DataContract()]
-		<%end if%>
-		public sealed partial class @<%=formattedTableName%> : Definitions.IRecordData
-		{
-			<% 
-			dim pk_dataType as string="int"
-			If Table.HasPrimaryKey then
-				pk_dataType=CSLib.GetTypeName(Table.PrimaryKey.MemberColumns.Item(0).SystemType,Table.PrimaryKey.MemberColumns.Item(0).AllowDBNull)
-			end if
-			%>
-		
-			private <%=pk_dataType%> _uniqueId;	
-			
-			#region IData Members
-			<% If DTOsForWCF then %>
-			[DataMember()]
-			<%end if%>
-			<% If RIAServices then %>
-			[Key()]
-			<%end if%>
-			public <%=pk_dataType%> UniqueId
-			{
-				get { return _uniqueId; }
-				set { _uniqueId = value; }
-			}
-			#endregion
-	
-			<%
-			for i as integer = 0 to Table.NonPrimaryKeyColumns.Count-1
-			%>
-			private <%=CSLib.GetTypeName(Table.NonPrimaryKeyColumns.Item(i).SystemType,Table.NonPrimaryKeyColumns.Item(i).AllowDBNull)%> _<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>;
-			<% If DTOsForWCF then %>
-			[DataMember()]
-			<%end if%>
-			public <%=CSLib.GetTypeName(Table.NonPrimaryKeyColumns.Item(i).SystemType,Table.NonPrimaryKeyColumns.Item(i).AllowDBNull)%> @<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>
-			{
-				get {return _<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%>;}
-				set {_<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%> = value;}
-			}
-			
-			<%
-			next i
-			%>
-			
-		}
-	
-	}
+    <%
+    dim formattedTableName as string=CSLib.GetFormattedName(Table.Name)
+    %>
+    [Serializable]
+    <% If DTOsForWCF then %>
+    [DataContract]
+    <%end if%>
+    public sealed partial class @<%=formattedTableName%> : Definitions.IRecordData
+    {
+        <% 
+        dim pk_dataType as string="int"
+        If Table.HasPrimaryKey then
+            pk_dataType=CSLib.GetTypeName(Table.PrimaryKey.MemberColumns.Item(0).SystemType,Table.PrimaryKey.MemberColumns.Item(0).AllowDBNull)
+        end if
+        %>
+        #region IData Members
+        <% If DTOsForWCF then %>
+        [DataMember]
+        <%end if%>
+        <% If RIAServices then %>
+        [Key()]
+        <%end if%>
+        public <%=pk_dataType%> UniqueId { get; set; }
+        #endregion
+        <%
+        for i as integer = 0 to Table.NonPrimaryKeyColumns.Count-1
+        %>
+        <% If DTOsForWCF then %>
+        
+        [DataMember]
+        <%end if%>
+        public <%=CSLib.GetTypeName(Table.NonPrimaryKeyColumns.Item(i).SystemType,Table.NonPrimaryKeyColumns.Item(i).AllowDBNull)%> @<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%> { get; set; }
+        <%
+        next i
+        %>
+    }
 }

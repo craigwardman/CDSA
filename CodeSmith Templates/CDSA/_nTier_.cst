@@ -1,4 +1,4 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" src="../CSLib.vb" Inherits="" Debug="False" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" src="../CSLib.vb" Inherits="" Debug="False" %>
 <%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Category="Context" Description="" %>
 <%@ Property Name="IgnorePrefix" Type="System.String" Default="Cms" Optional="True" Category="Input" Description="Ignore tables with the given prefix" %>
 <%@ Property Name="IncludePrefix" Type="System.String" Default="" Optional="True" Category="Input" Description="Only process tables with the given prefix" %>
@@ -6,6 +6,7 @@
 <%@ Property Name="LogName" Type="System.String" Default="" Optional="False" Category="Options" Description="The name of the log file to use in the BLL." %>
 <%@ Property Name="DTOsForWCF" Type="System.Boolean" Default="False" Optional="False" Category="Options" Description="Decorate the DTOs for use in WCF services." %>
 <%@ Property Name="RIAServices" Type="System.Boolean" Default="False" Optional="False" Category="Options" Description="Decorate DTOs and when making interface, generate RIA service classes for ASP.NET/Silverlight." %>
+<%@ Property Name="IdentityTypeName" Type="System.String" Default="System.Int32" Optional="False" Category="Options" Description="Write the type of the ID, e.g. System.Int32, System.Int64 or System.Guid" %>
 <%@ Property Name="MakeDDL" Type="System.Boolean" Default="True" Optional="False" Category="Output" Description="" %>
 <%@ Property Name="MakeDML" Type="System.Boolean" Default="True" Optional="False" Category="Output" Description="" %>
 <%@ Property Name="MakeSQLDAL" Type="System.Boolean" Default="True" Optional="False" Category="Output" Description="" %>
@@ -19,6 +20,7 @@
 <%@ Import Namespace="System.Data" %>
 <%@ Import Namespace="SchemaExplorer" %>
 
+    
 <%
 	'format the root folder
 	if not RootDirectory.EndsWith("\") then RootDirectory &= "\"
@@ -51,6 +53,7 @@ public sub Go()
 		currentTemplate.SetProperty("RootDirectory",RootDirectory & "_DDL\")
 		currentTemplate.SetProperty("IgnorePrefix", IgnorePrefix)
 		currentTemplate.SetProperty("IncludePrefix", IncludePrefix)
+        currentTemplate.SetProperty("IdentityTypeName", IdentityTypeName)
 		currentTemplate.SetProperty("RootNs", RootNs)
 		currentTemplate.SetProperty("Ns", ExtraNs)
 		currentTemplate.SetProperty("DTOsForWCF", DTOsForWCF)
@@ -63,6 +66,7 @@ public sub Go()
 	if MakeDML then
 		currentTemplate=me.GetCodeTemplateInstance(".\DML\_DML_.cst",true)
 		currentTemplate.SetProperty("RootDirectory",RootDirectory & "_DML\")
+        currentTemplate.SetProperty("IdentityTypeName", IdentityTypeName)
 		currentTemplate.SetProperty("RootNs", RootNs)
 		currentTemplate.SetProperty("Ns", ExtraNs)
 		currentTemplate.Render(Response.TargetWriters.Item(0))
@@ -76,6 +80,7 @@ public sub Go()
 		currentTemplate.SetProperty("RootDirectory",RootDirectory & "_SQLDAL\")
 		currentTemplate.SetProperty("IgnorePrefix", IgnorePrefix)
 		currentTemplate.SetProperty("IncludePrefix", IncludePrefix)
+        currentTemplate.SetProperty("IdentityTypeName", IdentityTypeName)
 		currentTemplate.SetProperty("RootNs", RootNs)
 		currentTemplate.SetProperty("Ns", ExtraNs)
 		currentTemplate.Render(Response.TargetWriters.Item(0))

@@ -1,4 +1,4 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
 <%@ Property Name="Table" Type="SchemaExplorer.TableSchema" Category="Context" Description="" %>
 <%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
 <%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
@@ -21,7 +21,7 @@ namespace <%=RootNs%>.UI.ServerControls
 end if
 %>
 {
-	public class <%=formattedTableName%>PagingGridView : ControlExtensions.WebControlExtensions.GridViewExtensions.CustomPagingGridView
+    public class <%=formattedTableName%>PagingGridView : ControlExtensions.WebControlExtensions.GridViewExtensions.CustomPagingGridView
     {
         [System.ComponentModel.Browsable(false)]
         public ClauseWrappers.WhereClauseWrapper.WhereClause WhereClause
@@ -43,7 +43,7 @@ end if
 
             
 
-            //work out the orderBy from the current expression
+            // work out the orderBy from the current expression
             if (base.SortExpression != "")
             {
                 if (base.SortExpression.Contains(",")) {
@@ -52,36 +52,36 @@ end if
                     foreach (string expr in exprs)
                     {
                         ClauseWrappers.OrderByClauseWrapper.OrderByClauseElement myOrderByClauseElem = new ClauseWrappers.OrderByClauseWrapper.OrderByClauseElement();
-						
-						if(expr.Contains(" ") && (expr.ToUpper().EndsWith("ASC") || expr.ToUpper().EndsWith("DESC")))
-						{
+                        
+                        if(expr.Contains(" ") && (expr.ToUpper().EndsWith("ASC") || expr.ToUpper().EndsWith("DESC")))
+                        {
                             myOrderByClauseElem.FieldName = BLL.SchemaCatalog.GetFieldNameByPropertyName(BLL.SchemaCatalog.CurrentProviderSchemas.<%=formattedTableName%>Schema, expr.Split(' ')[0]);
 
                             switch(expr.ToUpper().Split(' ')[1])
-							{
+                            {
                                 case "ASC":
                                     myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Ascending;
-									break;
+                                    break;
                                 case "DESC":
                                     myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Descending;
-									break;
+                                    break;
                             }
-						}
+                        }
                         else
-						{
+                        {
                             myOrderByClauseElem.FieldName = BLL.SchemaCatalog.GetFieldNameByPropertyName(BLL.SchemaCatalog.CurrentProviderSchemas.<%=formattedTableName%>Schema, expr);
 
                             switch(base.SortDirection)
-							{
-								case System.Web.UI.WebControls.SortDirection.Ascending:
-									myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Ascending;
-									break;
-								case System.Web.UI.WebControls.SortDirection.Descending:
-									myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Descending;
-									break;
-							}
+                            {
+                                case System.Web.UI.WebControls.SortDirection.Ascending:
+                                    myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Ascending;
+                                    break;
+                                case System.Web.UI.WebControls.SortDirection.Descending:
+                                    myOrderByClauseElem.Direction = ClauseWrappers.OrderByClauseWrapper.Direction.Descending;
+                                    break;
+                            }
                         }
-						
+                        
                         
 
                         orderBy.ClauseList.Add(myOrderByClauseElem);
@@ -106,7 +106,7 @@ end if
             }
 
 
-            //bind it
+            // bind it
             int virtItemCount;
             List<DDL.DTOs.<%=formattedTableName%>> results = BLL.Management.<%=formattedTableName%>Manager.GetInstance().GetRecords(WhereClause, orderBy, base.PageIndex + 1, base.PageSize, out virtItemCount);
 
@@ -124,17 +124,17 @@ end if
             base.AllowSorting = true;
         }
 
-        //Handle the paging/sorting events internally to save coding on the page
+        // Handle the paging/sorting events internally to save coding on the page
         protected override void OnPageIndexChanging(System.Web.UI.WebControls.GridViewPageEventArgs e)
         {
             e.Cancel = true;
             base.OnPageIndexChanging(e);
 
-            //save the new page index
+            // save the new page index
             base.PageIndex = e.NewPageIndex;
 
             BindGrid();
-			OnPageIndexChanged(EventArgs.Empty);
+            OnPageIndexChanged(EventArgs.Empty);
         }
 
         protected override void OnSorting(System.Web.UI.WebControls.GridViewSortEventArgs e)
@@ -142,12 +142,12 @@ end if
             e.Cancel = true;
             base.OnSorting(e);
 
-            //save the new sort options
+            // save the new sort options
             base.SortExpression = e.SortExpression;
             base.SortDirection = e.SortDirection;
 
             BindGrid();
-			OnSorted(EventArgs.Empty);
+            OnSorted(EventArgs.Empty);
         }
     }
 }

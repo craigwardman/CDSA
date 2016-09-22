@@ -1,56 +1,37 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" %>
 <%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
 <%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
-using System;
-
-namespace <%=RootNs%>.BLL
+namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>
 {
-	<%
-	if Ns<>"" then
-	%>
-	namespace <%=Ns%>
-	{
-	<%
-	end if
-	%>
-		public static partial class SchemaCatalog
-		{
-	
-			public static DDL.Definitions.ISchemaCatalog CurrentProviderSchemas
-			{
-				get { return DataProviders.Current.SchemaCatalog; }
-				private set { }
-			}
-	
-			public static string GetFieldNameByPropertyName(DDL.Definitions.Schemas.ISchemaBase schema, string propertyName)
-			{
-				System.Reflection.PropertyInfo mapProperty = schema.GetType().GetProperty(propertyName, typeof(string));
-	
-				if (mapProperty != null)
-				{
-					System.Reflection.MethodInfo getMethod = mapProperty.GetGetMethod(false);
-					
-					if(getMethod != null)
-					{
-						return (string)getMethod.Invoke(schema, null);
-					}
-					else
-					{
-						return "";
-					}
-				}
-				else
-				{
-					return "";
-				}
-			}
-		}
-	
-	<%
-	if Ns<>"" then
-	%>
-	}
-	<%
-	end if
-	%>
+    public static partial class SchemaCatalog
+    {
+        public static DDL.Definitions.ISchemaCatalog CurrentProviderSchemas
+        {
+            get { return DataProviders.Current.SchemaCatalog; }
+            private set { }
+        }
+
+        public static string GetFieldNameByPropertyName(DDL.Definitions.Schemas.ISchemaBase schema, string propertyName)
+        {
+            System.Reflection.PropertyInfo mapProperty = schema.GetType().GetProperty(propertyName, typeof(string));
+
+            if (mapProperty != null)
+            {
+                System.Reflection.MethodInfo getMethod = mapProperty.GetGetMethod(false);
+                
+                if (getMethod != null)
+                {
+                    return (string)getMethod.Invoke(schema, null);
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+    }
 }

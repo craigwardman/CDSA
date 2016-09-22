@@ -1,32 +1,18 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" Debug="False" Description="" src="../../../CSLib.vb" %>
 <%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
 <%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Import Namespace="SchemaExplorer" %>
 
-namespace <%=RootNs%>.DML
+namespace <%=RootNs%>.DML<%= IIf(Ns<>"", "." & Ns, "") %>.Provider
 {
+    public partial interface IDataProvider : ClauseWrappers.WhereClauseWrapper.IWhereClauseHandler, ClauseWrappers.OrderByClauseWrapper.IOrderByClauseHandler
+    {
+        DDL.Definitions.ISchemaCatalog SchemaCatalog { get; }
 
-	<%
-	if Ns<>"" then
-	%>
-	namespace <%=Ns & "."%>Provider
-	<%
-	else
-	%>
-	namespace Provider
-	<%
-	end if
-	%>
-	{
-		public partial interface IDataProvider : ClauseWrappers.WhereClauseWrapper.IWhereClauseHandler, ClauseWrappers.OrderByClauseWrapper.IOrderByClauseHandler
-		{
-			bool IsValid();
-	
-			//expose factory method for getting managers of each DDL.Definitions.Schema.* from the catalogue
-			Management.DataManagerBase ManagerFactory(DDL.Definitions.Schemas.ISchemaBase dataSchema);
-	
-			DDL.Definitions.ISchemaCatalog SchemaCatalog { get; }
-		}
-	}
+        bool IsValid();
+
+        // expose factory method for getting managers of each DDL.Definitions.Schema.* from the catalogue
+        Management.DataManagerBase ManagerFactory(DDL.Definitions.Schemas.ISchemaBase dataSchema);
+    }
 }

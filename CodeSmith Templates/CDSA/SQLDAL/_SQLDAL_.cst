@@ -1,7 +1,8 @@
-<%@ CodeTemplate Language="VB" TargetLanguage="Text" src="../../CSLib.vb" Inherits="" Debug="False" %>
+﻿<%@ CodeTemplate Language="VB" TargetLanguage="Text" src="../../CSLib.vb" Inherits="" Debug="False" %>
 <%@ Property Name="SourceDatabase" Type="SchemaExplorer.DatabaseSchema" Category="Context" Description="" %>
 <%@ Property Name="IgnorePrefix" Type="System.String" Default="Cms" Optional="True" Category="Input" Description="Ignore tables with the given prefix" %>
 <%@ Property Name="IncludePrefix" Type="System.String" Default="" Optional="True" Category="Input" Description="Only process tables with the given prefix" %>
+<%@ Property Name="IdentityTypeName" Type="System.String" Default="System.Int32" Optional="False" Category="Options" Description="Write the type of the ID, e.g. System.Int32, System.Int64 or System.Guid" %>
 <%@ Property Name="RootDirectory" Type="System.String" Default="c:\CWCode\_SQLDAL"  Optional="False" Category="Output" Description="Where to output the DVL code and its subfolders." %>
 <%@ Property Name="RootNs" Type="System.String" Default="" Optional="False" Category="Namespace" Description="The root namespace that will link all the layers." %>
 <%@ Property Name="Ns" Type="System.String" Default="" Optional="True" Category="Namespace" Description="An optional namespace string to include." %>
@@ -81,6 +82,7 @@ public sub Go()
 	
 	'create the SqlDataManager
 	currentTemplate=me.GetCodeTemplateInstance(".\Management\SqlDataManager.cst",true)
+    currentTemplate.SetProperty("IdentityTypeName", IdentityTypeName)
 	currentTemplate.SetProperty("RootNs", RootNs)
 	currentTemplate.SetProperty("Ns", Ns)
 	currentTemplate.RenderToFile(RootDirectory & "Management\SqlDataManager.cs", true)
