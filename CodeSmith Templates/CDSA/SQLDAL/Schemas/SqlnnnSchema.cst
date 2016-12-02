@@ -20,7 +20,6 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Schemas
         {
         }
 
-        #region I<%=formattedTableName%>Schema Members
         <%
         for i as integer = 0 to Table.NonPrimaryKeyColumns.Count-1
         %>
@@ -28,13 +27,10 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Schemas
         {
             get { return "<%=Table.NonPrimaryKeyColumns.Item(i).Name%>"; }
         }
-        
+
         <%
         next i
         %>
-        #endregion
-
-        #region ISchemaBase Members
         public string DataContainerName
         {
             get { return "<%=Table.Name%>"; }
@@ -48,8 +44,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Schemas
             get { return ""; }
             <%end if%>
         }
-        #endregion
-        
+
         public static Sql<%=formattedTableName%>Schema GetInstance()
         {
             return instance;

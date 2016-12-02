@@ -14,7 +14,7 @@ using System.Linq;
 namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
 {
     internal partial class DataFactory
-    {      
+    {
         public static DDL.Definitions.IRecordData CreateDataInstance(DDL.Definitions.Schemas.ISchemaBase dataSchema, DataRow rowData)
         {
             // switch the type
@@ -31,7 +31,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
             {
                 return new Sql<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>(rowData).DataTransferObject;
             }
-            else 
+            else
             <%
             
                 next
@@ -49,7 +49,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
                 }
             }
         }
-        
+
         public static DDL.Definitions.IRecordData CreateDataInstance(DDL.Definitions.Schemas.ISchemaBase dataSchema, IDataReader dataReader)
         {
             // switch the type
@@ -67,7 +67,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
             {
                 return new Sql<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>(dataReader).DataTransferObject;
             }
-            else 
+            else
             <%
                 next
             %>
@@ -84,21 +84,21 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
                 }
             }
         }
-        
+
         public static List<DDL.Definitions.IRecordData> CreateDataInstances(DDL.Definitions.Schemas.ISchemaBase dataSchema, DataTable tableData)
         {
             DDL.Definitions.IRecordData[] results = new DDL.Definitions.IRecordData[tableData.Rows.Count];
 
             System.Threading.Tasks.Parallel.For(
-            0, 
-            tableData.Rows.Count, 
+            0,
+            tableData.Rows.Count,
             new Action<int>(i =>
             {
                 results[i] = Data.DataFactory.CreateDataInstance(dataSchema, tableData.Rows[i]);
             }));
 
             return results.ToList();
-            
+
             ////Non .NET 4.0 can use the non-parallel version
             ////List<DDL.Definitions.IRecordData> results = new List<DDL.Definitions.IRecordData>(tableData.Rows.Count);
 
@@ -126,7 +126,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
             {
                 return new Sql<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>((DDL.DTOs.<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>)data).GetNameValuePairs();
             }
-            else 
+            else
             <%
                 next
             %>
@@ -143,7 +143,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
                 }
             }
         }
-        
+
         static partial void GetNameValuePairsEx(DDL.Definitions.IRecordData data, ref List<KeyValuePair<string, object>> returnValue);
         static partial void CreateDataInstanceEx(DDL.Definitions.Schemas.ISchemaBase dataSchema, DataRow rowData, ref DDL.Definitions.IRecordData returnValue);
         static partial void CreateDataInstanceEx(DDL.Definitions.Schemas.ISchemaBase dataSchema, IDataReader dataReader, ref DDL.Definitions.IRecordData returnValue);
