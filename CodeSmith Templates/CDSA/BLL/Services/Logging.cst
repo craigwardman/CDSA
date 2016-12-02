@@ -14,11 +14,11 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>.Services
         public static void WriteEntry(string source, string message, System.Diagnostics.EventLogEntryType type)
         {
             string todaysLog = Logname + DateTime.Now.ToString("-yyyyMMdd");
-            if (!System.IO.Directory.Exists(logBase)) 
+            if (!System.IO.Directory.Exists(logBase))
             {
                 System.IO.Directory.CreateDirectory(logBase);
             }
-                
+
             System.IO.File.AppendAllText(logBase + todaysLog + ".log", DateTime.Now.ToString("dd-MM-yy hh:mm:ss") + " - (" + type.ToString() + ") " + message + " - Source: " + source + "\r\n");
         }
     }

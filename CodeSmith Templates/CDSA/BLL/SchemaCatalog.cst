@@ -18,7 +18,7 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>
             if (mapProperty != null)
             {
                 System.Reflection.MethodInfo getMethod = mapProperty.GetGetMethod(false);
-                
+
                 if (getMethod != null)
                 {
                     return (string)getMethod.Invoke(schema, null);

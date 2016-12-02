@@ -16,11 +16,11 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
     internal partial class Sql<%=formattedTableName%>
     {
         private DDL.DTOs.<%=formattedTableName%> dto;
-                
+
         public Sql<%=formattedTableName%>(DataRow sqlRow)
         {
             this.dto = new DDL.DTOs.<%=formattedTableName%>();
-            
+
             // parse the data into the properties using the schema
             this.dto.UniqueId = (<%=CSLib.GetTypeName(Table.PrimaryKey.MemberColumns.Item(0).SystemType,Table.PrimaryKey.MemberColumns.Item(0).AllowDBNull)%>)sqlRow[Schemas.Sql<%=formattedTableName%>Schema.GetInstance().UniqueId];
 
@@ -35,17 +35,17 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
             <%if Table.NonPrimaryKeyColumns.Item(i).AllowDBNull then %>
             }
             <%end if%>
-                
+
             <%
             next i
             %>
             this.Sql<%=formattedTableName%>Ex(sqlRow);
         }
-        
+
         public Sql<%=formattedTableName%>(IDataReader sqlReader)
         {
             this.dto = new DDL.DTOs.<%=formattedTableName%>();
-            
+
             // parse the data into the properties using the schema
             this.dto.UniqueId = (<%=CSLib.GetTypeName(Table.PrimaryKey.MemberColumns.Item(0).SystemType,Table.PrimaryKey.MemberColumns.Item(0).AllowDBNull)%>)sqlReader[Schemas.Sql<%=formattedTableName%>Schema.GetInstance().UniqueId];
 
@@ -60,7 +60,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
             <%if Table.NonPrimaryKeyColumns.Item(i).AllowDBNull then %>
             }
             <%end if%>
-                
+
             <%
             next i
             %>
@@ -72,7 +72,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
         {
             this.dto = dvlData;
         }
-        
+
         // provider a method for returning the DTO
         public DDL.DTOs.<%=formattedTableName%> DataTransferObject
         {
@@ -93,17 +93,17 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Data
                 <%
                 next i
                 %>
-                
+
                 this.GetNameValuePairsEx(paramPairs);
             }
-            
+
             return paramPairs;
         }
-        
+
         // instantiate from an SQL datarow
         partial void Sql<%=formattedTableName%>Ex(DataRow sqlRow);
         partial void Sql<%=formattedTableName%>Ex(IDataReader sqlRow);
-        
+
         // provide a method to populate the name value pairs the sql helper needs
         partial void GetNameValuePairsEx(List<KeyValuePair<string, object>> paramPairs);
     }

@@ -24,8 +24,8 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>
                     throw new Exception("Not connected to a datasource!");
                 }
             }
-            
-            private set 
+
+            private set
             {
             }
         }
@@ -42,13 +42,13 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>
         }
 
         public partial class ProviderList
-        {   
+        {
             // import the DALs
             public static Provider SqlDataProvider(string connectionString)
             {
                 return new Provider() { Instance = new SQLDAL.Provider.SqlDataProvider(connectionString) };
             }
-            
+
             public struct Provider
             {
                 internal DML.Provider.IDataProvider Instance;

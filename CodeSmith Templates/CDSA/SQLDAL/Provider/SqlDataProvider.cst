@@ -11,7 +11,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Provider
     public partial class SqlDataProvider : DML.Provider.IDataProvider
     {
         // helper
-        internal readonly SqlHelper.SqlHelper SqlHelper;
+        private SqlHelper.SqlHelper sqlHelper;
 
         // data managers can be cached
         private Dictionary<DDL.Definitions.Schemas.ISchemaBase, Management.SqlDataManager> dataManagerCache = new Dictionary<DDL.Definitions.Schemas.ISchemaBase, Management.SqlDataManager>();
@@ -24,12 +24,24 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Provider
             this.SqlHelper = new SqlHelper.SqlHelper(connectionString);
         }
 
-        #region IDataProvider Members
         public DDL.Definitions.ISchemaCatalog SchemaCatalog
         {
             get { return this.sqlSchemaCatalogue; }
         }
-        
+
+                public SqlHelper.SqlHelper SqlHelper
+        {
+            get
+            {
+                return this.sqlHelper;
+            }
+
+            private set
+            {
+                this.sqlHelper = value;
+            }
+        }
+
         public bool IsValid()
         {
             return this.SqlHelper != null && this.SqlHelper.IsValidConnection();
@@ -50,17 +62,14 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Provider
                     // try again
                     return this.ManagerFactory(targetSchema);
                 }
-                catch (ArgumentException) 
-                { 
+                catch (ArgumentException)
+                {
                 }
             }
 
             // return the instance
             return this.dataManagerCache[targetSchema];
         }
-        #endregion
-
-        #region IWhereClauseHandler Members
 
         public object ParseWhereClause(ClauseWrappers.WhereClauseWrapper.WhereClause clause)
         {
@@ -73,9 +82,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Provider
                 return null;
             }
         }
-        #endregion
 
-        #region IOrderByClauseHandler Members
         public object ParseOrderByClause(ClauseWrappers.OrderByClauseWrapper.OrderByClause clause)
         {
             if (this.IsValid())
@@ -87,6 +94,5 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Provider
                 return null;
             }
         }
-        #endregion
     }
 }

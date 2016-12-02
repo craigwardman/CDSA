@@ -12,8 +12,8 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Management
     {
         private SqlHelper.SqlHelper helper;
 
-        public SqlDataManager(SqlHelper.SqlHelper helperInstance, DDL.Definitions.Schemas.ISchemaBase targetSchema) : 
-                base(targetSchema)
+        public SqlDataManager(SqlHelper.SqlHelper helperInstance, DDL.Definitions.Schemas.ISchemaBase targetSchema)
+            : base(targetSchema)
         {
             this.helper = helperInstance;
         }
@@ -32,7 +32,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Management
                 return null;
             }
         }
-        
+
         public override List<DDL.Definitions.IRecordData> GetData()
         {
             return this.GetData(null);
@@ -42,19 +42,19 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Management
         {
             return this.GetData(where, null);
         }
-        
+
         public override List<DDL.Definitions.IRecordData> GetData(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy)
         {
             // this version is only doing basic select so it can use the data reader version
             List<DDL.Definitions.IRecordData> results = new List<DDL.Definitions.IRecordData>();
 
             // get multiple records, matching the where clause
-            SqlCommand selectCommand = this.helper.GetSelectCommand(DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy), -1, -1, false);
+            SqlCommand selectCommand = this.helper.GetSelectCommand(this.DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy), -1, -1, false);
 
             // now execute the command and for each row we will create a data instance
             this.helper.ExecuteReader(
-                selectCommand, 
-                null, 
+                selectCommand,
+                null,
                 dr =>
                 {
                     results.Add(Data.DataFactory.CreateDataInstance(this.DataSchema, dr));
@@ -62,16 +62,16 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Management
 
             return results;
         }
-        
+
         public override List<DDL.Definitions.IRecordData> GetData(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy, int pageNumber, int pageSize)
         {
             // to use paging, an orderBy clause MUST be specified, if we have received null, then order by the primary key
             if (orderBy == null || orderBy.ClauseList.Count == 0)
             {
-                orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
+                orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(this.DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
             }
 
-            DataSet rawData = this.helper.Select(DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy), pageNumber, pageSize, false);
+            DataSet rawData = this.helper.Select(this.DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy), pageNumber, pageSize, false);
 
             if (rawData != null && rawData.Tables.Count > 0)
             {
@@ -88,11 +88,11 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Management
             // to use paging, an orderBy clause MUST be specified, if we have received null, then order by the primary key
             if (orderBy == null || orderBy.ClauseList.Count == 0)
             {
-                orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
+                orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(this.DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
             }
-        
+
             // get multiple records,paged, matching the where clause
-            DataSet rawData = this.helper.Select(DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy), pageNumber, pageSize);
+            DataSet rawData = this.helper.Select(this.DataSchema.DataContainerName, "*", (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy), pageNumber, pageSize);
 
             List<DDL.Definitions.IRecordData> results = new List<DDL.Definitions.IRecordData>();
 
@@ -125,7 +125,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Management
 
             return results;
         }
-        
+
         public override List<<%= IdentityTypeName %>> GetDataIDs()
         {
             return this.GetDataIDs(null);
@@ -139,7 +139,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Management
         public override List<<%= IdentityTypeName %>> GetDataIDs(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy)
         {
             // get multiple records, matching the where clause
-            DataSet rawData = this.helper.Select(DataSchema.DataContainerName, this.DataSchema.DataContainerName + "." + DataSchema.UniqueId, (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy));
+            DataSet rawData = this.helper.Select(this.DataSchema.DataContainerName, this.DataSchema.DataContainerName + "." + this.DataSchema.UniqueId, (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy));
 
             List<<%= IdentityTypeName %>> results = new List<<%= IdentityTypeName %>>();
 
@@ -153,7 +153,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Management
 
             return results;
         }
-        
+
         public override List<<%= IdentityTypeName %>> GetDataIDs(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy, int pageNumber, int pageSize)
         {
             // to use paging, an orderBy clause MUST be specified, if we have received null, then order by the primary key
@@ -182,9 +182,9 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Management
             // to use paging, an orderBy clause MUST be specified, if we have received null, then order by the primary key
             if (orderBy == null || orderBy.ClauseList.Count == 0)
             {
-                orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
+                orderBy = new ClauseWrappers.OrderByClauseWrapper.OrderByClause(this.DataSchema.UniqueId, ClauseWrappers.OrderByClauseWrapper.Direction.Ascending);
             }
-        
+
             // get multiple records,paged, matching the where clause
             DataSet rawData = this.helper.Select(this.DataSchema.DataContainerName, this.DataSchema.UniqueId, (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(where), (SqlHelper.SqlClauses.SqlOrderByClause)this.helper.ParseOrderByClause(orderBy), pageNumber, pageSize);
 
@@ -239,7 +239,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Management
             if (data.UniqueId <%= IIf(IdentityTypeName="System.Guid", "!= System.Guid.Empty", "> 0") %>)
             {
                 // update record by id
-                this.helper.Update(this.DataSchema.DataContainerName, Data.DataFactory.GetNameValuePairs(data), (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(GetIdClause(data.UniqueId)));
+                this.helper.Update(this.DataSchema.DataContainerName, Data.DataFactory.GetNameValuePairs(data), (SqlHelper.SqlClauses.SqlWhereClause)this.helper.ParseWhereClause(this.GetIdClause(data.UniqueId)));
                 return data.UniqueId;
             }
             else

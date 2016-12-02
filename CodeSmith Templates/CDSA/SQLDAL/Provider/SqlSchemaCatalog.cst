@@ -11,8 +11,7 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Provider
 {
     public partial class SqlSchemaCatalog : DDL.Definitions.ISchemaCatalog
     {
-        #region ISchemaCatalog Members
-        <%
+<%
             for i as integer=0 to SourceDatabase.Tables.Count-1
                 if IgnorePrefix<>"" then
                     if SourceDatabase.Tables.Item(i).Name.StartsWith(IgnorePrefix) then continue for
@@ -22,14 +21,13 @@ namespace <%=RootNs%>.SQLDAL<%= IIf(Ns<>"", "." & Ns, "") %>.Provider
                 end if
             
         %>
-        
+
         public DDL.Definitions.Schemas.I<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>Schema <%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>Schema
         {
             get { return Schemas.Sql<%= CSLib.GetFormattedName(SourceDatabase.Tables.Item(i).Name) %>Schema.GetInstance(); }
         }
-        <%
+<%
             next
         %>
-        #endregion
     }
 }

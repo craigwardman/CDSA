@@ -9,19 +9,32 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>
     [Serializable]
     public class EntityValidationException : Exception
     {
-        public readonly List<EntityValidationFault> Faults;
+        private List<EntityValidationFault> faults;
 
-        public EntityValidationException(List<EntityValidationFault> faults) : 
-            base("Entity validation failed. See the faults list for more details")
+        public EntityValidationException(List<EntityValidationFault> faults)
+            : base("Entity validation failed. See the faults list for more details")
         {
             this.Faults = faults;
         }
 
         [System.Security.Permissions.SecurityPermission(System.Security.Permissions.SecurityAction.Demand, SerializationFormatter = true)]
-        protected EntityValidationException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : 
-            base(info, context)
+        protected EntityValidationException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
         {
             this.Faults = info.GetValue("Faults", typeof(List<EntityValidationFault>)) as List<EntityValidationFault>;
+        }
+
+        public List<EntityValidationFault> Faults
+        {
+            get
+            {
+                return this.faults;
+            }
+
+            set
+            {
+                this.faults = value;
+            }
         }
 
         [System.Security.Permissions.SecurityPermission(System.Security.Permissions.SecurityAction.Demand, SerializationFormatter = true)]
@@ -39,21 +52,21 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>
     {
         private string faultDataName;
         private string faultDescription;
-    
+
         public EntityValidationFault(string faultDataName, string faultDescription)
         {
             this.faultDataName = faultDataName;
             this.faultDescription = faultDescription;
         }
-        
-        public string FaultDataName 
+
+        public string FaultDataName
         {
             get
             {
                 return this.faultDataName;
             }
         }
-        
+
         public string FaultDescription
         {
             get

@@ -31,7 +31,6 @@ namespace <%=RootNs%>.DDL<%= IIf(Ns<>"", "." & Ns, "") %>.DTOs
             pk_dataType=CSLib.GetTypeName(Table.PrimaryKey.MemberColumns.Item(0).SystemType,Table.PrimaryKey.MemberColumns.Item(0).AllowDBNull)
         end if
         %>
-        #region IData Members
         <% If DTOsForWCF then %>
         [DataMember]
         <%end if%>
@@ -39,12 +38,11 @@ namespace <%=RootNs%>.DDL<%= IIf(Ns<>"", "." & Ns, "") %>.DTOs
         [Key()]
         <%end if%>
         public <%=pk_dataType%> UniqueId { get; set; }
-        #endregion
         <%
         for i as integer = 0 to Table.NonPrimaryKeyColumns.Count-1
         %>
         <% If DTOsForWCF then %>
-        
+
         [DataMember]
         <%end if%>
         public <%=CSLib.GetTypeName(Table.NonPrimaryKeyColumns.Item(i).SystemType,Table.NonPrimaryKeyColumns.Item(i).AllowDBNull)%> @<%=CSLib.GetFormattedName(Table.NonPrimaryKeyColumns.Item(i).Name)%> { get; set; }

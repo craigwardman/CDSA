@@ -7,18 +7,18 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>.Services
     {
         // how many objects to keep in the cache
         private const int CacheSize = 1000;
-        
+
         private static bool enabled = true;
 
         // memory backed cache (shared amongst all items)
         private static System.Collections.Hashtable cache = new System.Collections.Hashtable(CacheSize);
-        
+
         public static bool Enabled
         {
             get { return Caching.enabled; }
             set { Caching.enabled = value; }
         }
-        
+
         // expose a function to completely wipe the cache
         public static void InvalidateCache()
         {
@@ -59,7 +59,7 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>.Services
                 RemoveFromCache(dataContainerName + "-" + dataUniqueId);
             }
         }
-        
+
         // get something from the cache
         private static DDL.Definitions.IRecordData GetFromCache(string key)
         {
@@ -135,7 +135,7 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>.Services
                 this.Data = data;
                 this.Touch();
             }
-            
+
             public DDL.Definitions.IRecordData Data
             {
                 get;

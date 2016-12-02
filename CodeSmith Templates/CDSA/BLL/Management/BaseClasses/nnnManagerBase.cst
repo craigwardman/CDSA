@@ -17,7 +17,7 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>.Management.BaseClasses
         protected <%=formattedTableName%>ManagerBase()
         {
         }
-        
+
         public DDL.Definitions.Schemas.I<%=formattedTableName%>Schema Schema
         {
             get { return SchemaCatalog.CurrentProviderSchemas.<%=formattedTableName%>Schema; }
@@ -38,7 +38,7 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>.Management.BaseClasses
         {
             // use caching on single item gets
             DDL.Definitions.IRecordData result = Services.Caching.GetFromCache(this.Schema.DataContainerName, id.ToString());
-            
+
             if (result == null)
             {
                 result = DataProviders.Current.ManagerFactory(this.Schema).GetDataById(id);
@@ -47,7 +47,7 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>.Management.BaseClasses
 
             return (DDL.DTOs.<%=formattedTableName%>)result;
         }
-        
+
         public List<DDL.DTOs.<%=formattedTableName%>> GetRecords()
         {
             return this.GetRecords(null);
@@ -67,12 +67,12 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>.Management.BaseClasses
         {
             return DataProviders.Current.ManagerFactory(this.Schema).GetData(@where, orderBy, pageNumber, pageSize, out totalRecords).Cast<DDL.DTOs.<%=formattedTableName%>>().ToList();
         }
-        
+
         public List<DDL.DTOs.<%=formattedTableName%>> GetRecords(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy, int pageNumber, int pageSize)
         {
             return DataProviders.Current.ManagerFactory(this.Schema).GetData(@where, orderBy, pageNumber, pageSize).Cast<DDL.DTOs.<%=formattedTableName%>>().ToList();
         }
-        
+
         public List<<%=pk_dataType%>> GetRecordIDs()
         {
             return this.GetRecordIDs(null);
@@ -92,7 +92,7 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>.Management.BaseClasses
         {
             return DataProviders.Current.ManagerFactory(this.Schema).GetDataIDs(@where, orderBy, pageNumber, pageSize, out totalRecords).Cast<<%=pk_dataType%>>().ToList();
         }
-        
+
         public List<<%=pk_dataType%>> GetRecordIDs(ClauseWrappers.WhereClauseWrapper.WhereClause where, ClauseWrappers.OrderByClauseWrapper.OrderByClause orderBy, int pageNumber, int pageSize)
         {
             return DataProviders.Current.ManagerFactory(this.Schema).GetDataIDs(@where, orderBy, pageNumber, pageSize).Cast<<%=pk_dataType%>>().ToList();
@@ -103,7 +103,7 @@ namespace <%=RootNs%>.BLL<%= IIf(Ns<>"", "." & Ns, "") %>.Management.BaseClasses
             DataProviders.Current.ManagerFactory(this.Schema).DeleteData(new ClauseWrappers.WhereClauseWrapper.WhereClause(this.Schema.UniqueId, ClauseWrappers.WhereClauseWrapper.Operator.Equals, id));
             Services.Caching.RemoveFromCache(this.Schema.DataContainerName, id.ToString());
         }
-    
+
         public virtual void SaveRecord(DDL.DTOs.<%=formattedTableName%> data)
         {
             if (data != null)
