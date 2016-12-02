@@ -1,5 +1,8 @@
 # CDSA
-"CDSA" is a set of CodeSmith templates and associated infrastructure libraries for a legacy tiered application architecture. It is here for posterity for building/updating dependant projects.
+"CDSA" is a set of CodeSmith templates and associated infrastructure libraries for a "top to bottom" tiered application architecture. It is here for posterity for building/updating dependant projects, as for the most part the preference for this style of application architecture has been dimished. However, this can still be useful for:
+
+A) Quick to build CRUD applications that are data-first and simply require an abstraction between business logic and data access logic  
+B) Used within a repository of a larger software architecture, to act as gateway to the SQL data store (e.g. alternative to EnitityFramework)
 
 Given a compatible SQL database and a copy of CodeSmith, the templates will generate a C# architecture which can then be coded against in Visual Studio. Each output project will contain a folder starting with "_" which is where the generated code should stay. Any modifications you wish to make for your application should be outside of these folders, within the relevent project.
 
