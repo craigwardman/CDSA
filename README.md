@@ -36,3 +36,5 @@ The projects rely on the provided libraries "ClauseWrappers" which is an abstrac
 
 NOTE on DB compatibility: All tables must use an identity column which must always be of the same type (e.g. int or guid)
 
+For a combined example of extending CDSA and exposing a manager for spatial querying, see:
+http://www.craigwardman.com/Blogging/BlogEntry/spatial-querying-example-in-cdsa
