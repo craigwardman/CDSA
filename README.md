@@ -1,3 +1,5 @@
+> :warning: This code is very old now and I don't see it being useful anymore, so I'm archiving this repo.
+
 # CDSA
 "CDSA" is a set of CodeSmith templates and associated infrastructure libraries for a "top to bottom" tiered application architecture. It is here for posterity for building/updating dependant projects, as for the most part the preference for this style of application architecture has been dimished. However, this can still be useful for:
 
